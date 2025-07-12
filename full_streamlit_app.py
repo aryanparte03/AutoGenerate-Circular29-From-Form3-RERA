@@ -973,27 +973,24 @@ st.set_page_config(
 # --- Styles ---
 st.markdown("""
     <style>
-    #MainMenu, header, footer {visibility: hidden;}
-    .css-164nlkn {display: none;}  /* GitHub icon */
-
-    html, body, .block-container {
-        background-color: #0f1117;
-        color: white;
+    html, body, .main {
+        height: 100%;
+        margin: 0;
+        padding: 0;
     }
     .block-container {
-        min-height: calc(100vh - 100px);
+        min-height: 100vh;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
-        padding-top: 0.5rem;  /* 🟢 Reduced top space */
-        padding-bottom: 1.5rem;
+        justify-content: flex-start;
+        padding-top: 0.5rem;
+        padding-bottom: 1rem;
     }
     .title-text {
         font-size: 2.5rem;
         font-weight: 800;
         text-align: center;
-        margin-bottom: 1.2rem;
-        margin-top: 0.3rem;  /* 🟢 Optional: extra control */
+        margin: 0.5rem 0 1.5rem 0;
     }
     .info-section {
         background-color: #111827;
@@ -1007,15 +1004,19 @@ st.markdown("""
         line-height: 1.6;
     }
     .footer {
+        margin-top: auto;
         text-align: center;
-        margin-top: 4rem;
-        padding: 1rem 0;
-        font-size: 0.9rem;
-        color: #999;
+        padding: 1.2rem 0 0.8rem 0;
+        font-size: 2rem;
+        font-weight: 500;
+        color: #ccc;
         border-top: 1px solid #333;
     }
+    #MainMenu, header, footer {visibility: hidden;}
+    .css-164nlkn {display: none;}
     </style>
 """, unsafe_allow_html=True)
+
 
 # --- Title ---
 st.markdown('<div class="title-text">📄 Form 3 ➝ Circular 29 Converter</div>', unsafe_allow_html=True)
@@ -1079,15 +1080,9 @@ with col_upload:
 
 # --- Footer ---
 st.markdown("""
-    <div class="footer" style="
-        text-align: center;
-        margin-bottom: 0.1rem;
-        padding: 1.2rem 0;
-        font-size: 2rem;
-        font-weight: 500;
-        color: #ccc;
-        border-top: 1px solid #333;">
+    <div class="footer">
         © 2025 Aryan Parte. All rights reserved.
     </div>
 """, unsafe_allow_html=True)
+
 
