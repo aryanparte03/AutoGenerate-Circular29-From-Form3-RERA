@@ -261,14 +261,14 @@ class Form3ToCircular29Converter:
         for row_index in range(data_start, len(sheet_data)):
             row = sheet_data.iloc[row_index]
 
-            # 🔴 STOP IMMEDIATELY if any new section header is detected (even before Sr. No = 1)
-            row_text = ' '.join(str(cell).lower() for cell in row if pd.notna(cell))
+            # 🔴 STOP if any new section header is detected (always, even if parsing hasn't started)
+            row_text = ' '.join(str(cell).lower() for cell in row if pd.notna(cell)).strip()
             if any(keyword in row_text for keyword in other_section_keywords):
                 logger.info(
-                    f"Detected next section '{row_text}' at row {row_index} — stopping '{section_keyword}' section before start.")
+                    f"Detected new section while scanning '{section_keyword}' → '{row_text}' at row {row_index}. Stopping.")
                 break
 
-            # ✅ Only start parsing from Sr. No = 1
+            # ✅ Look for Sr. No = 1 to start parsing
             sr_no_col = col_mapping.get('sr_no', 0)
             sr_no_cell = row.iloc[sr_no_col] if sr_no_col < len(row) else None
 
@@ -276,9 +276,9 @@ class Form3ToCircular29Converter:
                 if str(sr_no_cell).strip() in ["1", 1]:
                     parsing_started = True
                 else:
-                    continue  # Still looking for Sr. No. = 1
+                    continue  # keep looking for Sr. No = 1
 
-            # 🛑 If already started but current row is blank or non-numeric → stop
+            # Once started, stop if Sr. No becomes invalid
             if pd.isna(sr_no_cell) or not str(sr_no_cell).strip():
                 break
             try:
