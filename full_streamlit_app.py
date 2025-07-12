@@ -983,7 +983,7 @@ st.markdown("""
     
     /* Optimize main container spacing */
     .main .block-container {
-        padding-top: 1rem;
+        padding-top: 0.5rem;
         padding-bottom: 5rem; /* Space for footer */
         max-width: 100% !important;
         min-height: calc(100vh - 5rem);
@@ -999,7 +999,7 @@ st.markdown("""
         font-size: 2.2rem;
         font-weight: 700;
         text-align: center;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -1118,29 +1118,7 @@ st.markdown('<div class="title-text">📄 Form 3 ➝ Circular 29 Converter</div>
 # --- Layout: Info on Left, Upload on Right ---
 col_info, col_upload = st.columns([1.5, 2])
 
-# --- LEFT COLUMN: Tool Info ---
-with col_info:
-    st.markdown("""
-        <div class="info-card">
-            <div class="section-header">🧾 What this tool does</div>
-            
-            <div class="feature-item">
-                <span class="feature-icon">✔️</span>
-                <div class="desc-text">Extracts <b>Project Name</b>, <b>RERA No.</b>, and <b>As-on Date</b></div>
-            </div>
-            
-            <div class="feature-item">
-                <span class="feature-icon">📊</span>
-                <div class="desc-text">Reads Sold / Unsold / Landowner / Tenant unit data</div>
-            </div>
-            
-            <div class="feature-item">
-                <span class="feature-icon">✅</span>
-                <div class="desc-text">Generates <b>Circular 29</b> Excel file as per MahaRERA format</div>
-            </div>
-            
-            <div class="expected-sheets">
-                <div style="font-weight: 600; margin-bottom: 0.5rem; color: #e2e8f0;">Expected Sheets:</div>
+5rem; color: #e2e8f0;">Expected Sheets:</div>
                 <div class="sheet-list">• Table A — Project Info</div>
                 <div class="sheet-list">• Table B — As-on Date</div>
                 <div class="sheet-list">• Table C — Inventory Details</div>
@@ -1150,11 +1128,9 @@ with col_info:
 
 # --- RIGHT COLUMN: Upload + Status + Download ---
 with col_upload:
-    st.markdown("""
-        <div class="upload-area">
-            <div class="section-header">📂 Upload Form 3 (.xlsx)</div>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="upload-area">', unsafe_allow_html=True)
+    st.markdown("### 📂 Upload Form 3 (.xlsx)")
+    st.markdown('</div>', unsafe_allow_html=True)
     
     uploaded_file = st.file_uploader("Choose Form 3 Excel", type=["xlsx", "xls"], label_visibility="collapsed")
     
