@@ -254,38 +254,52 @@ class Form3ToCircular29Converter:
 
         # Extract data rows
         units = []
+        section_keywords = list(self.config.section_keywords.keys())
+        lower_keywords = [kw.lower() for kw in section_keywords if kw.lower() != section_keyword.lower()]
+
         for row_index in range(data_start, len(sheet_data)):
             row = sheet_data.iloc[row_index]
 
-            # Check if Sr. No is numeric and consecutive
-            sr_no_col = col_mapping.get('sr_no', 0)
-            sr_no_value = row.iloc[sr_no_col] if sr_no_col < len(row) else None
+            # 🛑 Check for the start of a different section (e.g., "UNSOLD")
+            for col in sheet_data.columns:
+                cell_text = str(row[col]).strip().lower()
+                if any(new_kw in cell_text for new_kw in lower_keywords):
+                    logger.info(
+                        f"Detected start of another section at row {row_index}: '{cell_text}' — stopping current section.")
+                    return units
 
-            # Stop if Sr. No is not numeric or row is empty
-            if pd.isna(sr_no_value) or not str(sr_no_value).strip():
-                break
+            # ✅ Get Sr. No. and validate it
+            sr_no_col = col_mapping.get('sr_no', 0)
+            sr_no_cell = row.iloc[sr_no_col] if sr_no_col < len(row) else None
+
+            if pd.isna(sr_no_cell) or not str(sr_no_cell).strip():
+                break  # blank → end of this section
 
             try:
-                sr_no = int(float(sr_no_value))
+                sr_no = int(float(sr_no_cell))
             except (ValueError, TypeError):
-                break
+                break  # non-numeric → end of this section
 
+            # ✅ Extract and clean other fields
+            bldg_index = col_mapping.get('building_no', 1)
+            flat_index = col_mapping.get('flat_no', 2)
+            carpet_index = col_mapping.get('carpet_area', 3)
 
+            building_val = str(row.iloc[bldg_index]).strip() if (
+                    bldg_index < len(row) and pd.notna(row.iloc[bldg_index])
+            ) else ""
+            flat_val = str(row.iloc[flat_index]).strip() if (
+                    flat_index < len(row) and pd.notna(row.iloc[flat_index])
+            ) else ""
+            carpet_val = str(row.iloc[carpet_index]).strip() if (
+                    carpet_index < len(row) and pd.notna(row.iloc[carpet_index])
+            ) else ""
 
             unit_data = {
                 'sr_no': sr_no,
-                'building_no': str(row.iloc[col_mapping.get('building_no', 1)]).strip() if (
-                        col_mapping.get('building_no', 1) < len(row) and
-                        pd.notna(row.iloc[col_mapping.get('building_no', 1)])
-                ) else "",
-                'flat_no': str(row.iloc[col_mapping.get('flat_no', 2)]).strip() if (
-                        col_mapping.get('flat_no', 2) < len(row) and
-                        pd.notna(row.iloc[col_mapping.get('flat_no', 2)])
-                ) else "",
-                'carpet_area': str(row.iloc[col_mapping.get('carpet_area', 3)]).strip() if (
-                        col_mapping.get('carpet_area', 3) < len(row) and
-                        pd.notna(row.iloc[col_mapping.get('carpet_area', 3)])
-                ) else "",
+                'building_no': building_val,
+                'flat_no': flat_val,
+                'carpet_area': carpet_val,
                 'status': section_keyword.lower(),
                 'registration_date': ""
             }
@@ -294,7 +308,7 @@ class Form3ToCircular29Converter:
 
         logger.info(f"Extracted {len(units)} units for section {section_keyword}")
         return units
-
+    
     def extract_from_filename(self, filename: str) -> Tuple[str, str, str]:
         """
         Extract project name, RERA number, and date from filename as fallback
