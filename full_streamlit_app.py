@@ -219,8 +219,7 @@ class Form3ToCircular29Converter:
 
     def extract_unit_data(self, sheet_data: pd.DataFrame, section_keyword: str) -> List[Dict]:
         """
-        Extract unit data for a specific section.
-        Stops parsing if another section header appears even before Sr. No = 1.
+        Extract unit data for a specific section
         """
         logger.info(f"Extracting unit data for section: {section_keyword}")
 
@@ -229,37 +228,16 @@ class Form3ToCircular29Converter:
         if section_start == -1:
             return []
 
-        # Get all other section keywords
-        section_keywords = list(self.config.section_keywords.keys())
-        other_section_keywords = [k.lower() for k in section_keywords if k.lower() != section_keyword.lower()]
-
-        # Find Sr. No = 1 row but abort if another section header appears first
-        data_start = -1
-        for index in range(section_start, len(sheet_data)):
-            row = sheet_data.iloc[index]
-            row_text = ' '.join(str(cell).lower() for cell in row if pd.notna(cell)).strip()
-
-            # Abort if another section header is found before Sr. No = 1
-            if any(keyword in row_text for keyword in other_section_keywords):
-                logger.info(
-                    f"Aborted section '{section_keyword}' — found new header '{row_text}' before Sr. No = 1 at row {index}")
-                return []
-
-            for col in sheet_data.columns:
-                cell_value = row[col]
-                if str(cell_value).strip() == "1":
-                    data_start = index
-                    break
-            if data_start != -1:
-                break
-
+        # Find data start (where Sr. No = 1)
+        data_start = self.find_data_start_row(sheet_data, section_start)
         if data_start == -1:
-            logger.warning(f"Sr. No = 1 not found for section '{section_keyword}'")
             return []
 
-        # Header row is usually a few rows above data_start
+        # Get header row (usually the row before data starts)
+        # Try to locate the actual header row by looking for known keywords
         header_keywords = ["sr", "flat", "carpet", "unit", "building", "wing"]
         header_row_index = -1
+
         for i in range(max(0, data_start - 3), data_start + 1):
             row = sheet_data.iloc[i]
             match_count = 0
@@ -284,7 +262,7 @@ class Form3ToCircular29Converter:
 
         logger.info(f"Headers found: {headers}")
 
-        # Map columns
+        # Map column indices
         col_mapping = {}
         for i, header in enumerate(headers):
             if "sr" in header and "no" in header:
@@ -298,27 +276,39 @@ class Form3ToCircular29Converter:
             elif "building" in header and "no" in header:
                 col_mapping['building_no'] = i
             elif "wing" in header:
-                col_mapping['building_no'] = i  # Use wing as building
+                col_mapping['building_no'] = i  # Use wing as building if building not found
             if 'building_no' in col_mapping:
                 self.include_building_column = True
 
         logger.info(f"Column mapping: {col_mapping}")
 
-        # Start extracting rows from data_start
+        # Extract data rows
         units = []
+        section_keywords = list(self.config.section_keywords.keys())
+        other_section_keywords = [k.lower() for k in section_keywords if k.lower() != section_keyword.lower()]
+        parsing_started = False
+
         for row_index in range(data_start, len(sheet_data)):
             row = sheet_data.iloc[row_index]
 
-            # Stop if new section header is found mid-way
+            # 🔴 STOP if any new section header is detected (always, even if parsing hasn't started)
             row_text = ' '.join(str(cell).lower() for cell in row if pd.notna(cell)).strip()
             if any(keyword in row_text for keyword in other_section_keywords):
                 logger.info(
-                    f"Detected new section '{row_text}' at row {row_index} — stopping section '{section_keyword}'")
+                    f"Detected new section while scanning '{section_keyword}' → '{row_text}' at row {row_index}. Stopping.")
                 break
 
+            # ✅ Look for Sr. No = 1 to start parsing
             sr_no_col = col_mapping.get('sr_no', 0)
             sr_no_cell = row.iloc[sr_no_col] if sr_no_col < len(row) else None
 
+            if not parsing_started:
+                if str(sr_no_cell).strip() in ["1", 1]:
+                    parsing_started = True
+                else:
+                    continue  # keep looking for Sr. No = 1
+
+            # Once started, stop if Sr. No becomes invalid
             if pd.isna(sr_no_cell) or not str(sr_no_cell).strip():
                 break
             try:
@@ -326,6 +316,7 @@ class Form3ToCircular29Converter:
             except (ValueError, TypeError):
                 break
 
+            # ✅ Extract unit data
             bldg_index = col_mapping.get('building_no', 1)
             flat_index = col_mapping.get('flat_no', 2)
             carpet_index = col_mapping.get('carpet_area', 3)
@@ -972,11 +963,88 @@ import os
 from datetime import datetime
 # from app import Form3ToCircular29Converter  # This line is not needed anymore inlined version
 
-st.set_page_config(page_title="Form 3 ➝ Circular 29 Converter", page_icon="📄", layout="centered")
-st.title("📄 Form 3 ➝ Circular 29 Converter")
-st.markdown("Upload your **Form 3 Excel file** below. The app will generate a Circular 29 Excel report.")
+# Set up Streamlit page
+st.set_page_config(
+    page_title="Form 3 ➝ Circular 29 Converter",
+    page_icon="📄",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
-uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx", "xls"])
+# Hide default Streamlit UI elements (GitHub link, hamburger menu, footer)
+st.markdown("""
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .css-164nlkn {display: none;}
+    </style>
+""", unsafe_allow_html=True)
+
+# Custom UI Styling
+st.markdown("""
+    <style>
+        .title-text {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            padding-bottom: 0.5rem;
+        }
+        .upload-section {
+            background-color: #111827;
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid #333;
+        }
+        .desc-text {
+            font-size: 1rem;
+            color: #ccc;
+            padding: 1rem 0 2rem 0;
+            line-height: 1.5;
+        }
+        .footer {
+            text-align: center;
+            padding-top: 3rem;
+            color: #777;
+            font-size: 0.9rem;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# UI Header
+st.markdown('<div class="title-text">📄 Form 3 ➝ Circular 29 Converter</div>', unsafe_allow_html=True)
+
+# Two-column layout
+col1, col2 = st.columns([1, 2])
+
+with col1:
+    st.markdown("""
+    <div class="upload-section">
+        <h4>📂 Upload Form 3 (.xlsx)</h4>
+        <p class="desc-text">
+            Upload your certified Form 3 Excel file. The app will auto-generate a Circular 29 Excel sheet.<br><br>
+            <b>Input must include:</b><br>
+            • Table A (project info)<br>
+            • Table B (as-on date)<br>
+            • Table C (unit data)
+        </p>
+    """, unsafe_allow_html=True)
+
+    uploaded_file = st.file_uploader("Choose Form 3 Excel", type=["xlsx", "xls"])
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with col2:
+    st.markdown("""
+    <div class="upload-section">
+        <h4>🧾 What this tool does</h4>
+        <ul class="desc-text">
+            <li>✔️ Extracts project details, RERA, and as-on date</li>
+            <li>📊 Processes sold / unsold / landowner / tenant units</li>
+            <li>🚫 Skips empty or duplicate sections cleanly</li>
+            <li>✅ Outputs MahaRERA-compliant Circular 29 file</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
 
 if uploaded_file:
     with st.spinner("Processing... Please wait"):
