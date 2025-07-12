@@ -171,20 +171,31 @@ class Form3ToCircular29Converter:
         logger.warning(f"Section '{section_keyword}' not found")
         return -1
 
-    def find_data_start_row(self, sheet_data: pd.DataFrame, start_row: int) -> int:
+    def find_data_start_row(self, sheet_data: pd.DataFrame, section_start: int, section_keyword: str) -> int:
         """
-        Find the row where Sr. No equals exactly 1
+        Find the row where Sr. No equals exactly 1 for the given section,
+        but return -1 if another section starts first (prevent wrong data extraction).
         """
-        for index in range(start_row, len(sheet_data)):
+        section_keywords = list(self.config.section_keywords.keys())
+        other_section_keywords = [k.lower() for k in section_keywords if k.lower() != section_keyword.lower()]
+
+        for index in range(section_start, len(sheet_data)):
             row = sheet_data.iloc[index]
+            row_text = ' '.join(str(cell).lower() for cell in row if pd.notna(cell)).strip()
+
+            # ❌ If a new section like "unsold" or "tenant" appears before Sr. No = 1
+            if any(keyword in row_text for keyword in other_section_keywords):
+                logger.info(f"'{section_keyword}' aborted — found '{row_text}' at row {index} before Sr. No = 1")
+                return -1
+
+            # ✅ Check for Sr. No = 1
             for col in sheet_data.columns:
                 cell_value = row[col]
-                # Check if Sr. No is exactly 1 (not "1." or "(1)")
-                if cell_value == 1 or cell_value == "1":
-                    logger.info(f"Found Sr. No = 1 at row {index}")
+                if str(cell_value).strip() == "1":
+                    logger.info(f"Found Sr. No = 1 for '{section_keyword}' at row {index}")
                     return index
 
-        logger.warning("Sr. No = 1 not found")
+        logger.warning(f"Sr. No = 1 not found in section '{section_keyword}'")
         return -1
 
     def extract_unit_data(self, sheet_data: pd.DataFrame, section_keyword: str) -> List[Dict]:
