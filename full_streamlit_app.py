@@ -1064,7 +1064,7 @@ st.markdown(f"""
     <div style='
         width: 100%;
         text-align: center;
-        margin-top: 6rem;
+        margin-top: 5.5rem;
         padding: 1rem 0;
         color: #999;
         font-size: 2.5rem;
