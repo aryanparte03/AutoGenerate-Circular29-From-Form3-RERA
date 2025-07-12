@@ -963,7 +963,6 @@ import os
 from datetime import datetime
 # from app import Form3ToCircular29Converter  # This line is not needed anymore inlined version
 
-# Set up Streamlit page
 st.set_page_config(
     page_title="Form 3 ➝ Circular 29 Converter",
     page_icon="📄",
@@ -971,77 +970,58 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Hide default Streamlit UI elements (GitHub link, hamburger menu, footer)
+# Hide GitHub menu, header, footer
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
-    .css-164nlkn {display: none;}
+    .css-164nlkn {display: none;}  /* GitHub icon */
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    html, body, [class*="css"] {
+        background-color: #0f1117;
+        color: #fff;
+        scroll-behavior: smooth;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# Custom UI Styling
-st.markdown("""
-    <style>
-        .title-text {
-            font-size: 2.5rem;
-            font-weight: 800;
-            text-align: center;
-            padding-bottom: 0.5rem;
-        }
-        .upload-section {
-            background-color: #111827;
-            padding: 2rem;
-            border-radius: 1rem;
-            border: 1px solid #333;
-        }
-        .desc-text {
-            font-size: 1rem;
-            color: #ccc;
-            padding: 1rem 0 2rem 0;
-            line-height: 1.5;
-        }
-        .footer {
-            text-align: center;
-            padding-top: 3rem;
-            color: #777;
-            font-size: 0.9rem;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-# UI Header
-st.markdown('<div class="title-text">📄 Form 3 ➝ Circular 29 Converter</div>', unsafe_allow_html=True)
+# Main Title
+st.markdown('<div style="text-align: center; font-size: 2.5rem; font-weight: 800;">📄 Form 3 ➝ Circular 29 Converter</div>',
+            unsafe_allow_html=True)
 
 # Two-column layout
 col1, col2 = st.columns([1, 2])
 
+# LEFT COLUMN – Upload
 with col1:
     st.markdown("""
-    <div class="upload-section">
+    <div style="background-color: #111827; padding: 2rem; border-radius: 1rem; border: 1px solid #333;">
         <h4>📂 Upload Form 3 (.xlsx)</h4>
-        <p class="desc-text">
-            Upload your certified Form 3 Excel file. The app will auto-generate a Circular 29 Excel sheet.<br><br>
-            <b>Input must include:</b><br>
-            • Table A (project info)<br>
-            • Table B (as-on date)<br>
-            • Table C (unit data)
+        <p style="color: #ccc; font-size: 1rem; line-height: 1.6;">
+            Upload your certified Form 3 Excel file.<br><br>
+            <b>Must include sheets:</b><br>
+            • Table A — Project Info<br>
+            • Table B — As-on Date<br>
+            • Table C — Unit Inventory
         </p>
     """, unsafe_allow_html=True)
 
     uploaded_file = st.file_uploader("Choose Form 3 Excel", type=["xlsx", "xls"])
     st.markdown("</div>", unsafe_allow_html=True)
 
+# RIGHT COLUMN – Description
 with col2:
     st.markdown("""
-    <div class="upload-section">
+    <div style="background-color: #111827; padding: 2rem; border-radius: 1rem; border: 1px solid #333;">
         <h4>🧾 What this tool does</h4>
-        <ul class="desc-text">
-            <li>✔️ Extracts project details, RERA, and as-on date</li>
-            <li>📊 Processes sold / unsold / landowner / tenant units</li>
-            <li>🚫 Skips empty or duplicate sections cleanly</li>
-            <li>✅ Outputs MahaRERA-compliant Circular 29 file</li>
+        <ul style="color: #ccc; font-size: 1rem; line-height: 1.6;">
+            <li>✔️ Extracts project details, RERA number, as-on date</li>
+            <li>📊 Processes sold / unsold / landowner / tenant data</li>
+            <li>✅ Outputs Circular 29 in MahaRERA format</li>
         </ul>
     </div>
     """, unsafe_allow_html=True)
@@ -1078,3 +1058,18 @@ if uploaded_file:
                 st.error("❌ Failed to generate Circular 29 Excel.")
         else:
             st.error("❌ Failed to process Form 3 file.")
+
+# Fixed Footer
+st.markdown(f"""
+    <div style='
+        position: relative;
+        bottom: 0;
+        width: 100%;
+        text-align: center;
+        padding: 2rem 0 1rem 0;
+        color: #777;
+        font-size: 0.9rem;
+    '>
+        © 2025 Aryan Parte. All rights reserved.
+    </div>
+""", unsafe_allow_html=True)
