@@ -1006,16 +1006,6 @@ st.markdown("""
         background-clip: text;
     }
     
-    .section-header {
-        font-size: 1.3rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        color: #e2e8f0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
     .info-card {
         background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
         padding: 1.5rem;
@@ -1031,41 +1021,6 @@ st.markdown("""
         border-radius: 0.75rem;
         border: 1px solid #475569;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    
-    .desc-text {
-        font-size: 0.95rem;
-        color: #cbd5e1;
-        line-height: 1.7;
-        margin-bottom: 0.5rem;
-    }
-    
-    .feature-item {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 0.75rem;
-        padding: 0.5rem 0;
-    }
-    
-    .feature-icon {
-        font-size: 1.1rem;
-        width: 1.5rem;
-        text-align: center;
-    }
-    
-    .expected-sheets {
-        background-color: #1e293b;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        border-left: 4px solid #667eea;
-        margin-top: 1rem;
-    }
-    
-    .sheet-list {
-        font-size: 0.9rem;
-        color: #94a3b8;
-        margin: 0.5rem 0;
     }
     
     /* Fixed footer styling */
@@ -1118,13 +1073,21 @@ st.markdown('<div class="title-text">📄 Form 3 ➝ Circular 29 Converter</div>
 # --- Layout: Info on Left, Upload on Right ---
 col_info, col_upload = st.columns([1.5, 2])
 
-5rem; color: #e2e8f0;">Expected Sheets:</div>
-                <div class="sheet-list">• Table A — Project Info</div>
-                <div class="sheet-list">• Table B — As-on Date</div>
-                <div class="sheet-list">• Table C — Inventory Details</div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+# --- LEFT COLUMN: Tool Info ---
+with col_info:
+    st.markdown('<div class="info-card">', unsafe_allow_html=True)
+    st.markdown("### 🧾 What this tool does")
+    
+    st.markdown("✔️ **Extracts Project Name, RERA No., and As-on Date**")
+    st.markdown("📊 **Reads Sold / Unsold / Landowner / Tenant unit data**")
+    st.markdown("✅ **Generates Circular 29 Excel file as per MahaRERA format**")
+    
+    st.markdown("---")
+    st.markdown("**Expected Sheets:**")
+    st.markdown("• Table A — Project Info")
+    st.markdown("• Table B — As-on Date")
+    st.markdown("• Table C — Inventory Details")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- RIGHT COLUMN: Upload + Status + Download ---
 with col_upload:
