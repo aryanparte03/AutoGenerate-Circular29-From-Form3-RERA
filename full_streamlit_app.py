@@ -254,48 +254,58 @@ class Form3ToCircular29Converter:
 
         # Extract data rows
         units = []
-        section_keywords = list(self.config.section_keywords.keys())  # ['sold', 'unsold', 'tenant', 'landowner']
-        other_keywords = [k for k in section_keywords if k.lower() != section_keyword.lower()]
+        section_keywords = list(self.config.section_keywords.keys())
+        other_section_keywords = [k.lower() for k in section_keywords if k.lower() != section_keyword.lower()]
+        parsing_started = False
 
         for row_index in range(data_start, len(sheet_data)):
             row = sheet_data.iloc[row_index]
 
-            # Check for presence of a new section keyword to stop
+            # 🔴 STOP IMMEDIATELY if any new section header is detected (even before Sr. No = 1)
             row_text = ' '.join(str(cell).lower() for cell in row if pd.notna(cell))
-            if any(other_kw in row_text for other_kw in other_keywords):
-                logger.info(f"Encountered new section while processing {section_keyword}, stopping at row {row_index}")
+            if any(keyword in row_text for keyword in other_section_keywords):
+                logger.info(
+                    f"Detected next section '{row_text}' at row {row_index} — stopping '{section_keyword}' section before start.")
                 break
 
-            # Check if Sr. No is numeric
+            # ✅ Only start parsing from Sr. No = 1
             sr_no_col = col_mapping.get('sr_no', 0)
-            sr_no_value = row.iloc[sr_no_col] if sr_no_col < len(row) else None
+            sr_no_cell = row.iloc[sr_no_col] if sr_no_col < len(row) else None
 
-            if pd.isna(sr_no_value) or not str(sr_no_value).strip():
+            if not parsing_started:
+                if str(sr_no_cell).strip() in ["1", 1]:
+                    parsing_started = True
+                else:
+                    continue  # Still looking for Sr. No. = 1
+
+            # 🛑 If already started but current row is blank or non-numeric → stop
+            if pd.isna(sr_no_cell) or not str(sr_no_cell).strip():
                 break
-
             try:
-                sr_no = int(float(sr_no_value))
+                sr_no = int(float(sr_no_cell))
             except (ValueError, TypeError):
                 break
 
+            # ✅ Extract unit data
+            bldg_index = col_mapping.get('building_no', 1)
+            flat_index = col_mapping.get('flat_no', 2)
+            carpet_index = col_mapping.get('carpet_area', 3)
+
             unit_data = {
                 'sr_no': sr_no,
-                'building_no': str(row.iloc[col_mapping.get('building_no', 1)]).strip() if (
-                        col_mapping.get('building_no', 1) < len(row) and pd.notna(
-                    row.iloc[col_mapping.get('building_no', 1)])) else "",
-                'flat_no': str(row.iloc[col_mapping.get('flat_no', 2)]).strip() if (
-                        col_mapping.get('flat_no', 2) < len(row) and pd.notna(
-                    row.iloc[col_mapping.get('flat_no', 2)])) else "",
-                'carpet_area': str(row.iloc[col_mapping.get('carpet_area', 3)]).strip() if (
-                        col_mapping.get('carpet_area', 3) < len(row) and pd.notna(
-                    row.iloc[col_mapping.get('carpet_area', 3)])) else "",
+                'building_no': str(row.iloc[bldg_index]).strip() if (
+                        bldg_index < len(row) and pd.notna(row.iloc[bldg_index])) else "",
+                'flat_no': str(row.iloc[flat_index]).strip() if (
+                        flat_index < len(row) and pd.notna(row.iloc[flat_index])) else "",
+                'carpet_area': str(row.iloc[carpet_index]).strip() if (
+                        carpet_index < len(row) and pd.notna(row.iloc[carpet_index])) else "",
                 'status': section_keyword.lower(),
                 'registration_date': ""
             }
 
             units.append(unit_data)
-            
-        logger.info(f"Extracted {len(units)} units for section {section_keyword}")
+
+        logger.info(f"Extracted {len(units)} units for section '{section_keyword}'")
         return units
 
     def extract_from_filename(self, filename: str) -> Tuple[str, str, str]:
