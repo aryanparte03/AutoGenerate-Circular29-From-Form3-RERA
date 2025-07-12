@@ -187,127 +187,6 @@ class Form3ToCircular29Converter:
         logger.warning("Sr. No = 1 not found")
         return -1
 
-    def extract_unit_data(self, sheet_data: pd.DataFrame, section_keyword: str) -> List[Dict]:
-        """
-        Extract unit data for a specific section
-        """
-        logger.info(f"Extracting unit data for section: {section_keyword}")
-
-        # Find section start
-        section_start = self.find_section_start(sheet_data, section_keyword)
-        if section_start == -1:
-            return []
-
-        # Find data start (where Sr. No = 1)
-        data_start = self.find_data_start_row(sheet_data, section_start)
-        if data_start == -1:
-            return []
-
-        # Get header row (usually the row before data starts)
-        # Try to locate the actual header row by looking for known keywords
-        header_keywords = ["sr", "flat", "carpet", "unit", "building", "wing"]
-        header_row_index = -1
-
-        for i in range(max(0, data_start - 3), data_start + 1):
-            row = sheet_data.iloc[i]
-            match_count = 0
-            for cell in row:
-                text = str(cell).strip().lower()
-                if any(keyword in text for keyword in header_keywords):
-                    match_count += 1
-            if match_count >= 2:
-                header_row_index = i
-                break
-
-        if header_row_index == -1:
-            logger.warning(f"Could not reliably locate header row for section: {section_keyword}")
-            return []
-
-        # Extract headers
-        headers = []
-        header_row = sheet_data.iloc[header_row_index]
-        for col in sheet_data.columns:
-            header_value = str(header_row[col]) if pd.notna(header_row[col]) else ""
-            headers.append(self.normalize_text(header_value))
-
-        logger.info(f"Headers found: {headers}")
-
-        # Map column indices
-        col_mapping = {}
-        for i, header in enumerate(headers):
-            if "sr" in header and "no" in header:
-                col_mapping['sr_no'] = i
-            elif "flat" in header and "no" in header:
-                col_mapping['flat_no'] = i
-            elif "carpet" in header and "area" in header:
-                col_mapping['carpet_area'] = i
-            elif "unit" in header and "type" in header and "apartment" not in header:
-                col_mapping['unit_type'] = i
-            elif "building" in header and "no" in header:
-                col_mapping['building_no'] = i
-            elif "wing" in header:
-                col_mapping['building_no'] = i  # Use wing as building if building not found
-            if 'building_no' in col_mapping:
-                self.include_building_column = True
-
-        logger.info(f"Column mapping: {col_mapping}")
-
-        # Extract data rows
-        units = []
-        section_keywords = list(self.config.section_keywords.keys())
-        other_section_keywords = [k.lower() for k in section_keywords if k.lower() != section_keyword.lower()]
-        parsing_started = False
-
-        for row_index in range(data_start, len(sheet_data)):
-            row = sheet_data.iloc[row_index]
-
-            # 🔴 STOP if any new section header is detected (always, even if parsing hasn't started)
-            row_text = ' '.join(str(cell).lower() for cell in row if pd.notna(cell)).strip()
-            if any(keyword in row_text for keyword in other_section_keywords):
-                logger.info(
-                    f"Detected new section while scanning '{section_keyword}' → '{row_text}' at row {row_index}. Stopping.")
-                break
-
-            # ✅ Look for Sr. No = 1 to start parsing
-            sr_no_col = col_mapping.get('sr_no', 0)
-            sr_no_cell = row.iloc[sr_no_col] if sr_no_col < len(row) else None
-
-            if not parsing_started:
-                if str(sr_no_cell).strip() in ["1", 1]:
-                    parsing_started = True
-                else:
-                    continue  # keep looking for Sr. No = 1
-
-            # Once started, stop if Sr. No becomes invalid
-            if pd.isna(sr_no_cell) or not str(sr_no_cell).strip():
-                break
-            try:
-                sr_no = int(float(sr_no_cell))
-            except (ValueError, TypeError):
-                break
-
-            # ✅ Extract unit data
-            bldg_index = col_mapping.get('building_no', 1)
-            flat_index = col_mapping.get('flat_no', 2)
-            carpet_index = col_mapping.get('carpet_area', 3)
-
-            unit_data = {
-                'sr_no': sr_no,
-                'building_no': str(row.iloc[bldg_index]).strip() if (
-                        bldg_index < len(row) and pd.notna(row.iloc[bldg_index])) else "",
-                'flat_no': str(row.iloc[flat_index]).strip() if (
-                        flat_index < len(row) and pd.notna(row.iloc[flat_index])) else "",
-                'carpet_area': str(row.iloc[carpet_index]).strip() if (
-                        carpet_index < len(row) and pd.notna(row.iloc[carpet_index])) else "",
-                'status': section_keyword.lower(),
-                'registration_date': ""
-            }
-
-            units.append(unit_data)
-
-        logger.info(f"Extracted {len(units)} units for section '{section_keyword}'")
-        return units
-
     def extract_from_filename(self, filename: str) -> Tuple[str, str, str]:
         """
         Extract project name, RERA number, and date from filename as fallback
@@ -337,6 +216,136 @@ class Form3ToCircular29Converter:
 
         logger.info(f"Extracted from filename - Project: {project_name}, RERA: {rera_number}, Date: {date_str}")
         return project_name, rera_number, date_str
+
+    def extract_unit_data(self, sheet_data: pd.DataFrame, section_keyword: str) -> List[Dict]:
+        """
+        Extract unit data for a specific section.
+        Stops parsing if another section header appears even before Sr. No = 1.
+        """
+        logger.info(f"Extracting unit data for section: {section_keyword}")
+
+        # Find section start
+        section_start = self.find_section_start(sheet_data, section_keyword)
+        if section_start == -1:
+            return []
+
+        # Get all other section keywords
+        section_keywords = list(self.config.section_keywords.keys())
+        other_section_keywords = [k.lower() for k in section_keywords if k.lower() != section_keyword.lower()]
+
+        # Find Sr. No = 1 row but abort if another section header appears first
+        data_start = -1
+        for index in range(section_start, len(sheet_data)):
+            row = sheet_data.iloc[index]
+            row_text = ' '.join(str(cell).lower() for cell in row if pd.notna(cell)).strip()
+
+            # Abort if another section header is found before Sr. No = 1
+            if any(keyword in row_text for keyword in other_section_keywords):
+                logger.info(
+                    f"Aborted section '{section_keyword}' — found new header '{row_text}' before Sr. No = 1 at row {index}")
+                return []
+
+            for col in sheet_data.columns:
+                cell_value = row[col]
+                if str(cell_value).strip() == "1":
+                    data_start = index
+                    break
+            if data_start != -1:
+                break
+
+        if data_start == -1:
+            logger.warning(f"Sr. No = 1 not found for section '{section_keyword}'")
+            return []
+
+        # Header row is usually a few rows above data_start
+        header_keywords = ["sr", "flat", "carpet", "unit", "building", "wing"]
+        header_row_index = -1
+        for i in range(max(0, data_start - 3), data_start + 1):
+            row = sheet_data.iloc[i]
+            match_count = 0
+            for cell in row:
+                text = str(cell).strip().lower()
+                if any(keyword in text for keyword in header_keywords):
+                    match_count += 1
+            if match_count >= 2:
+                header_row_index = i
+                break
+
+        if header_row_index == -1:
+            logger.warning(f"Could not reliably locate header row for section: {section_keyword}")
+            return []
+
+        # Extract headers
+        headers = []
+        header_row = sheet_data.iloc[header_row_index]
+        for col in sheet_data.columns:
+            header_value = str(header_row[col]) if pd.notna(header_row[col]) else ""
+            headers.append(self.normalize_text(header_value))
+
+        logger.info(f"Headers found: {headers}")
+
+        # Map columns
+        col_mapping = {}
+        for i, header in enumerate(headers):
+            if "sr" in header and "no" in header:
+                col_mapping['sr_no'] = i
+            elif "flat" in header and "no" in header:
+                col_mapping['flat_no'] = i
+            elif "carpet" in header and "area" in header:
+                col_mapping['carpet_area'] = i
+            elif "unit" in header and "type" in header and "apartment" not in header:
+                col_mapping['unit_type'] = i
+            elif "building" in header and "no" in header:
+                col_mapping['building_no'] = i
+            elif "wing" in header:
+                col_mapping['building_no'] = i  # Use wing as building
+            if 'building_no' in col_mapping:
+                self.include_building_column = True
+
+        logger.info(f"Column mapping: {col_mapping}")
+
+        # Start extracting rows from data_start
+        units = []
+        for row_index in range(data_start, len(sheet_data)):
+            row = sheet_data.iloc[row_index]
+
+            # Stop if new section header is found mid-way
+            row_text = ' '.join(str(cell).lower() for cell in row if pd.notna(cell)).strip()
+            if any(keyword in row_text for keyword in other_section_keywords):
+                logger.info(
+                    f"Detected new section '{row_text}' at row {row_index} — stopping section '{section_keyword}'")
+                break
+
+            sr_no_col = col_mapping.get('sr_no', 0)
+            sr_no_cell = row.iloc[sr_no_col] if sr_no_col < len(row) else None
+
+            if pd.isna(sr_no_cell) or not str(sr_no_cell).strip():
+                break
+            try:
+                sr_no = int(float(sr_no_cell))
+            except (ValueError, TypeError):
+                break
+
+            bldg_index = col_mapping.get('building_no', 1)
+            flat_index = col_mapping.get('flat_no', 2)
+            carpet_index = col_mapping.get('carpet_area', 3)
+
+            unit_data = {
+                'sr_no': sr_no,
+                'building_no': str(row.iloc[bldg_index]).strip() if (
+                        bldg_index < len(row) and pd.notna(row.iloc[bldg_index])) else "",
+                'flat_no': str(row.iloc[flat_index]).strip() if (
+                        flat_index < len(row) and pd.notna(row.iloc[flat_index])) else "",
+                'carpet_area': str(row.iloc[carpet_index]).strip() if (
+                        carpet_index < len(row) and pd.notna(row.iloc[carpet_index])) else "",
+                'status': section_keyword.lower(),
+                'registration_date': ""
+            }
+
+            units.append(unit_data)
+
+        logger.info(f"Extracted {len(units)} units for section '{section_keyword}'")
+        return units
 
     def process_form3_file(self, file_path: str) -> bool:
         """
