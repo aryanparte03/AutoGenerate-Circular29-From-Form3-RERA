@@ -1021,7 +1021,7 @@ col_info, col_upload = st.columns([1.5, 2])
 
 # --- LEFT COLUMN: Tool Info ---
 with col_info:
-    st.markdown("### 🧾 What this tool does")
+    st.markdown("#### 🧾 What this tool does")
     st.markdown("""
         <div class="desc-text">
         ✔️ Extracts <b>Project Name</b>, <b>RERA No.</b>, and <b>As-on Date</b><br><br>
@@ -1037,7 +1037,7 @@ with col_info:
 
 # --- RIGHT COLUMN: Upload + Status + Download ---
 with col_upload:
-    st.markdown("### 📂 Upload Form 3 (.xlsx)")
+    st.markdown("#### 📂 Upload Form 3 (.xlsx)")
 
     uploaded_file = st.file_uploader("Choose Form 3 Excel", type=["xlsx", "xls"])
 
@@ -1074,4 +1074,15 @@ with col_upload:
     st.markdown("</div>", unsafe_allow_html=True)
 
 # --- Footer ---
-st.markdown('<div class="footer">© 2025 Aryan Parte. All rights reserved.</div>', unsafe_allow_html=True)
+st.markdown("""
+    <div class="footer" style="
+        text-align: center;
+        margin-top: 4rem;
+        padding: 1.2rem 0;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #ccc;
+        border-top: 1px solid #333;">
+        © 2025 Aryan Parte. All rights reserved.
+    </div>
+""", unsafe_allow_html=True)
