@@ -961,8 +961,9 @@ import streamlit as st
 import tempfile
 import os
 from datetime import datetime
-# from app import Form3ToCircular29Converter  # This line is not needed anymore inlined version
+from form3_to_circular29_converter import Form3ToCircular29Converter  # Adjust this import if needed
 
+# --- Page Config ---
 st.set_page_config(
     page_title="Form 3 ➝ Circular 29 Converter",
     page_icon="📄",
@@ -970,106 +971,125 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Hide GitHub menu, header, footer
+# --- Styles ---
 st.markdown("""
     <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    .css-164nlkn {display: none;}  /* GitHub icon */
+    #MainMenu, header, footer {visibility: hidden;}
+    .css-164nlkn {display: none;} /* GitHub icon */
+
+    html, body, .block-container {
+        background-color: #0f1117;
+        color: white;
+    }
     .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
+        max-width: 100% !important;
     }
-    html, body, [class*="css"] {
-        background-color: #0f1117;
-        color: #fff;
-        scroll-behavior: smooth;
+    .title-text {
+        font-size: 2.5rem;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .upload-section {
+        background-color: #111827;
+        padding: 2rem;
+        border-radius: 1rem;
+        border: 1px solid #333;
+    }
+    .desc-text {
+        font-size: 1rem;
+        color: #ccc;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+    .footer {
+        text-align: center;
+        margin-top: 4rem;
+        padding: 1rem 0;
+        font-size: 0.9rem;
+        color: #999;
+        border-top: 1px solid #333;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Main Title
-st.markdown('<div style="text-align: center; font-size: 2.5rem; font-weight: 800;">📄 Form 3 ➝ Circular 29 Converter</div>',
-            unsafe_allow_html=True)
+# --- Title ---
+st.markdown('<div class="title-text">📄 Form 3 ➝ Circular 29 Converter</div>', unsafe_allow_html=True)
 
-# Two-column layout
+# --- Upload / Info Card ---
 col1, col2 = st.columns([1, 2])
 
-# LEFT COLUMN – Upload
 with col1:
+    st.markdown('<div class="upload-section">', unsafe_allow_html=True)
+    st.markdown("### 📂 Upload Form 3 (.xlsx)")
     st.markdown("""
-    <div style="background-color: #111827; padding: 2rem; border-radius: 1rem; border: 1px solid #333;">
-        <h4>📂 Upload Form 3 (.xlsx)</h4>
-        <p style="color: #ccc; font-size: 1rem; line-height: 1.6;">
+        <div class="desc-text">
             Upload your certified Form 3 Excel file.<br><br>
             <b>Must include sheets:</b><br>
             • Table A — Project Info<br>
             • Table B — As-on Date<br>
             • Table C — Unit Inventory
-        </p>
+        </div>
     """, unsafe_allow_html=True)
-
     uploaded_file = st.file_uploader("Choose Form 3 Excel", type=["xlsx", "xls"])
     st.markdown("</div>", unsafe_allow_html=True)
 
-# RIGHT COLUMN – Description
 with col2:
+    st.markdown('<div class="upload-section">', unsafe_allow_html=True)
+    st.markdown("### 🧾 What this tool does")
     st.markdown("""
-    <div style="background-color: #111827; padding: 2rem; border-radius: 1rem; border: 1px solid #333;">
-        <h4>🧾 What this tool does</h4>
-        <ul style="color: #ccc; font-size: 1rem; line-height: 1.6;">
+        <ul class="desc-text">
             <li>✔️ Extracts project details, RERA number, as-on date</li>
             <li>📊 Processes sold / unsold / landowner / tenant data</li>
             <li>✅ Outputs Circular 29 in MahaRERA format</li>
         </ul>
-    </div>
     """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
+# --- Post Upload Processing ---
 if uploaded_file:
-    with st.spinner("Processing... Please wait"):
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
-            tmp.write(uploaded_file.read())
-            tmp_path = tmp.name
+    col_left, col_right = st.columns([1, 1])
 
-        converter = Form3ToCircular29Converter()
+    with col_left:
+        st.markdown("#### Upload complete.")
+        st.info(f"**{uploaded_file.name}**")
 
-        if converter.process_form3_file(tmp_path):
-            # Prepare output file name
-            project_clean = converter.project_name.strip().replace(" ", "_") or "Project"
-            try:
-                parsed_date = datetime.strptime(converter.format_date(converter.as_on_date), "%d/%m/%Y")
-                as_on_string = parsed_date.strftime("%B %Y")
-            except:
-                as_on_string = converter.as_on_date.replace("/", " ").replace("-", " ")
+    with col_right:
+        with st.spinner("⏳ Processing..."):
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
+                tmp.write(uploaded_file.read())
+                tmp_path = tmp.name
 
-            filename = f"Circular 29 - {project_clean.replace('_', ' ')} as on {as_on_string}.xlsx"
+            converter = Form3ToCircular29Converter()
 
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            output_dir = os.path.join(base_dir, "saved data")
-            os.makedirs(output_dir, exist_ok=True)
-            output_path = os.path.join(output_dir, filename)
+            if converter.process_form3_file(tmp_path):
+                project_clean = converter.project_name.strip().replace(" ", "_") or "Project"
+                try:
+                    parsed_date = datetime.strptime(converter.format_date(converter.as_on_date), "%d/%m/%Y")
+                    as_on_string = parsed_date.strftime("%B %Y")
+                except:
+                    as_on_string = converter.as_on_date.replace("/", " ").replace("-", " ")
 
-            if converter.create_circular29_excel(output_path):
-                with open(output_path, "rb") as f:
+                filename = f"Circular 29 - {project_clean.replace('_', ' ')} as on {as_on_string}.xlsx"
+
+                output_dir = os.path.join("saved data")
+                os.makedirs(output_dir, exist_ok=True)
+                output_path = os.path.join(output_dir, filename)
+
+                if converter.create_circular29_excel(output_path):
                     st.success("✅ Conversion completed successfully!")
-                    st.download_button("📥 Download Circular 29 Excel", f.read(), file_name=filename, mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                    with open(output_path, "rb") as f:
+                        st.download_button("📥 Download Circular 29 Excel", f.read(), file_name=filename)
+                else:
+                    st.error("❌ Failed to generate Circular 29 Excel.")
             else:
-                st.error("❌ Failed to generate Circular 29 Excel.")
-        else:
-            st.error("❌ Failed to process Form 3 file.")
+                st.error("❌ Failed to process Form 3 file.")
 
-# Fixed Footer
-st.markdown(f"""
-    <div style='
-        width: 100%;
-        text-align: center;
-        margin-top: 5.5rem;
-        padding: 1rem 0;
-        color: #999;
-        font-size: 2.5rem;
-        border-top: 1px solid #333;
-    '>
-        © 2025 Aryan Parte. All rights reserved.
-    </div>
+# --- Footer ---
+st.markdown("""
+    <div class="footer">© 2025 Aryan Parte. All rights reserved.</div>
 """, unsafe_allow_html=True)
+
+
