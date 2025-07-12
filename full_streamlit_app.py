@@ -981,9 +981,10 @@ st.markdown("""
         color: white;
     }
     .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        max-width: 100% !important;
+        min-height: calc(100vh - 100px);  /* Pushes footer down */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
     .title-text {
         font-size: 2.5rem;
@@ -1086,3 +1087,4 @@ st.markdown("""
         © 2025 Aryan Parte. All rights reserved.
     </div>
 """, unsafe_allow_html=True)
+
