@@ -981,12 +981,12 @@ st.markdown("""
         color: white;
     }
     
-    /* Make the main container fill the viewport */
+    /* Optimize main container spacing */
     .main .block-container {
-        padding-top: 2rem;
-        padding-bottom: 6rem; /* Add space for footer */
+        padding-top: 1rem;
+        padding-bottom: 5rem; /* Space for footer */
         max-width: 100% !important;
-        min-height: calc(100vh - 6rem);
+        min-height: calc(100vh - 5rem);
     }
     
     /* Ensure the app content area takes full height */
@@ -996,23 +996,76 @@ st.markdown("""
     }
     
     .title-text {
-        font-size: 2.5rem;
-        font-weight: 800;
+        font-size: 2.2rem;
+        font-weight: 700;
         text-align: center;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
     
-    .info-section {
-        background-color: #111827;
-        padding: 2rem;
-        border-radius: 1rem;
-        border: 1px solid #333;
+    .section-header {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .info-card {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid #475569;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+    }
+    
+    .upload-area {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid #475569;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
     
     .desc-text {
-        font-size: 1rem;
-        color: #ccc;
-        line-height: 1.6;
+        font-size: 0.95rem;
+        color: #cbd5e1;
+        line-height: 1.7;
+        margin-bottom: 0.5rem;
+    }
+    
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        padding: 0.5rem 0;
+    }
+    
+    .feature-icon {
+        font-size: 1.1rem;
+        width: 1.5rem;
+        text-align: center;
+    }
+    
+    .expected-sheets {
+        background-color: #1e293b;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border-left: 4px solid #667eea;
+        margin-top: 1rem;
+    }
+    
+    .sheet-list {
+        font-size: 0.9rem;
+        color: #94a3b8;
+        margin: 0.5rem 0;
     }
     
     /* Fixed footer styling */
@@ -1021,20 +1074,37 @@ st.markdown("""
         bottom: 0;
         left: 0;
         right: 0;
-        background-color: #0f1117;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         text-align: center;
-        padding: 1rem 0;
-        font-size: 1.2rem;
+        padding: 0.8rem 0;
+        font-size: 0.9rem;
         font-weight: 500;
-        color: #ccc;
-        border-top: 1px solid #333;
+        color: #94a3b8;
+        border-top: 1px solid #475569;
         z-index: 1000;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+        box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
     }
     
     /* Prevent footer from covering content */
     .main-content {
-        padding-bottom: 5rem;
+        padding-bottom: 4rem;
+    }
+    
+    /* Custom styling for Streamlit components */
+    .stFileUploader > div > div > div > div {
+        background-color: #1e293b !important;
+        border: 2px dashed #475569 !important;
+        border-radius: 0.5rem !important;
+    }
+    
+    .stSuccess {
+        background-color: #065f46 !important;
+        border: 1px solid #10b981 !important;
+    }
+    
+    .stError {
+        background-color: #7f1d1d !important;
+        border: 1px solid #ef4444 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -1050,23 +1120,43 @@ col_info, col_upload = st.columns([1.5, 2])
 
 # --- LEFT COLUMN: Tool Info ---
 with col_info:
-    st.markdown("### 🧾 What this tool does")
     st.markdown("""
-        <div class="desc-text">
-        ✔️ Extracts <b>Project Name</b>, <b>RERA No.</b>, and <b>As-on Date</b><br><br>
-        📊 Reads Sold / Unsold / Landowner / Tenant unit data<br><br>
-        ✅ Generates <b>Circular 29</b> Excel file as per MahaRERA format<br><br>
-        <b>Expected Sheets:</b><br>
-        • Table A — Project Info<br>
-        • Table B — As-on Date<br>
-        • Table C — Inventory Details
+        <div class="info-card">
+            <div class="section-header">🧾 What this tool does</div>
+            
+            <div class="feature-item">
+                <span class="feature-icon">✔️</span>
+                <div class="desc-text">Extracts <b>Project Name</b>, <b>RERA No.</b>, and <b>As-on Date</b></div>
+            </div>
+            
+            <div class="feature-item">
+                <span class="feature-icon">📊</span>
+                <div class="desc-text">Reads Sold / Unsold / Landowner / Tenant unit data</div>
+            </div>
+            
+            <div class="feature-item">
+                <span class="feature-icon">✅</span>
+                <div class="desc-text">Generates <b>Circular 29</b> Excel file as per MahaRERA format</div>
+            </div>
+            
+            <div class="expected-sheets">
+                <div style="font-weight: 600; margin-bottom: 0.5rem; color: #e2e8f0;">Expected Sheets:</div>
+                <div class="sheet-list">• Table A — Project Info</div>
+                <div class="sheet-list">• Table B — As-on Date</div>
+                <div class="sheet-list">• Table C — Inventory Details</div>
+            </div>
         </div>
     """, unsafe_allow_html=True)
 
 # --- RIGHT COLUMN: Upload + Status + Download ---
 with col_upload:
-    st.markdown("### 📂 Upload Form 3 (.xlsx)")
-    uploaded_file = st.file_uploader("Choose Form 3 Excel", type=["xlsx", "xls"])
+    st.markdown("""
+        <div class="upload-area">
+            <div class="section-header">📂 Upload Form 3 (.xlsx)</div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    uploaded_file = st.file_uploader("Choose Form 3 Excel", type=["xlsx", "xls"], label_visibility="collapsed")
     
     if uploaded_file:
         with st.spinner("⏳ Processing Form 3 file..."):
