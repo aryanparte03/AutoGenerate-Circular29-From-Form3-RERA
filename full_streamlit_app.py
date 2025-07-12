@@ -1086,12 +1086,10 @@ with col_info:
     st.markdown("• Table A — Project Info")
     st.markdown("• Table B — As-on Date")
     st.markdown("• Table C — Inventory Details")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- RIGHT COLUMN: Upload + Status + Download ---
 with col_upload:
     st.markdown("### 📂 Upload Form 3 (.xlsx)")
-    st.markdown('</div>', unsafe_allow_html=True)
     
     uploaded_file = st.file_uploader("Choose Form 3 Excel", type=["xlsx", "xls"], label_visibility="collapsed")
     
