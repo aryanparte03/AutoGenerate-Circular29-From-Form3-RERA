@@ -1064,10 +1064,10 @@ st.markdown(f"""
     <div style='
         width: 100%;
         text-align: center;
-        margin-top: 3rem;
+        margin-top: 6rem;
         padding: 1rem 0;
         color: #999;
-        font-size: 0.9rem;
+        font-size: 4rem;
         border-top: 1px solid #333;
     '>
         © 2025 Aryan Parte. All rights reserved.
