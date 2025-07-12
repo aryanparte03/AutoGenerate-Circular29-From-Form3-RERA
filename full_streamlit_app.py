@@ -1079,7 +1079,7 @@ st.markdown("""
         text-align: center;
         margin-bottom: 0.1rem;
         padding: 1.2rem 0;
-        font-size: 2.5rem;
+        font-size: 2rem;
         font-weight: 500;
         color: #ccc;
         border-top: 1px solid #333;">
