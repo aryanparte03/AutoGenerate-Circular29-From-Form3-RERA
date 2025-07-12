@@ -1067,7 +1067,7 @@ st.markdown(f"""
         margin-top: 6rem;
         padding: 1rem 0;
         color: #999;
-        font-size: 2.7rem;
+        font-size: 2.5rem;
         border-top: 1px solid #333;
     '>
         © 2025 Aryan Parte. All rights reserved.
