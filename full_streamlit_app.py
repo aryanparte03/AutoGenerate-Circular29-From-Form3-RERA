@@ -981,16 +981,19 @@ st.markdown("""
         color: white;
     }
     .block-container {
-        min-height: calc(100vh - 100px);  /* Pushes footer down */
+        min-height: calc(100vh - 100px);
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        padding-top: 0.5rem;  /* 🟢 Reduced top space */
+        padding-bottom: 1.5rem;
     }
     .title-text {
         font-size: 2.5rem;
         font-weight: 800;
         text-align: center;
-        margin-bottom: 2rem;
+        margin-bottom: 1.2rem;
+        margin-top: 0.3rem;  /* 🟢 Optional: extra control */
     }
     .info-section {
         background-color: #111827;
