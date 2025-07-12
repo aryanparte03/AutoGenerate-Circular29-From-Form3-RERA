@@ -422,7 +422,10 @@ class Form3ToCircular29Converter:
             return True
 
         except Exception as e:
-            logger.error(f"Error processing Form 3 file: {str(e)}")
+            import traceback
+            logger.error("Error processing Form 3 file")
+            logger.error(traceback.format_exc())
+            print("❌ Failed to process Form 3 file.")
             return False
 
     def create_circular29_excel(self, output_path: str) -> bool:
