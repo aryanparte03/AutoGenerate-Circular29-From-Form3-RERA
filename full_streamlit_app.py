@@ -1062,13 +1062,13 @@ if uploaded_file:
 # Fixed Footer
 st.markdown(f"""
     <div style='
-        position: relative;
-        bottom: 0;
         width: 100%;
         text-align: center;
-        padding: 2rem 0 1rem 0;
-        color: #777;
+        margin-top: 3rem;
+        padding: 1rem 0;
+        color: #999;
         font-size: 0.9rem;
+        border-top: 1px solid #333;
     '>
         © 2025 Aryan Parte. All rights reserved.
     </div>
