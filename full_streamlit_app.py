@@ -975,45 +975,72 @@ st.markdown("""
     <style>
     #MainMenu, header, footer {visibility: hidden;}
     .css-164nlkn {display: none;}  /* GitHub icon */
-
+    
     html, body, .block-container {
         background-color: #0f1117;
         color: white;
     }
-    .block-container {
+    
+    /* Make the main container fill the viewport */
+    .main .block-container {
         padding-top: 2rem;
-        padding-bottom: 2rem;
+        padding-bottom: 6rem; /* Add space for footer */
         max-width: 100% !important;
+        min-height: calc(100vh - 6rem);
     }
+    
+    /* Ensure the app content area takes full height */
+    .stApp {
+        min-height: 100vh;
+        position: relative;
+    }
+    
     .title-text {
         font-size: 2.5rem;
         font-weight: 800;
         text-align: center;
         margin-bottom: 2rem;
     }
+    
     .info-section {
         background-color: #111827;
         padding: 2rem;
         border-radius: 1rem;
         border: 1px solid #333;
     }
+    
     .desc-text {
         font-size: 1rem;
         color: #ccc;
         line-height: 1.6;
     }
+    
+    /* Fixed footer styling */
     .footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: #0f1117;
         text-align: center;
-        margin-bottom: 0.1rem;
-        padding: 0.7rem 0;
-        font-size: 2rem;
+        padding: 1rem 0;
+        font-size: 1.2rem;
         font-weight: 500;
         color: #ccc;
         border-top: 1px solid #333;
+        z-index: 1000;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
     }
-
+    
+    /* Prevent footer from covering content */
+    .main-content {
+        padding-bottom: 5rem;
+    }
     </style>
 """, unsafe_allow_html=True)
+
+# --- Main Content Container ---
+st.markdown('<div class="main-content">', unsafe_allow_html=True)
 
 # --- Title ---
 st.markdown('<div class="title-text">📄 Form 3 ➝ Circular 29 Converter</div>', unsafe_allow_html=True)
@@ -1035,22 +1062,19 @@ with col_info:
         • Table C — Inventory Details
         </div>
     """, unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # --- RIGHT COLUMN: Upload + Status + Download ---
 with col_upload:
     st.markdown("### 📂 Upload Form 3 (.xlsx)")
-
     uploaded_file = st.file_uploader("Choose Form 3 Excel", type=["xlsx", "xls"])
-
+    
     if uploaded_file:
         with st.spinner("⏳ Processing Form 3 file..."):
             with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
                 tmp.write(uploaded_file.read())
                 tmp_path = tmp.name
-
+            
             converter = Form3ToCircular29Converter()
-
             if converter.process_form3_file(tmp_path):
                 project_clean = converter.project_name.strip().replace(" ", "_") or "Project"
                 try:
@@ -1058,13 +1082,12 @@ with col_upload:
                     as_on_string = parsed_date.strftime("%B %Y")
                 except:
                     as_on_string = converter.as_on_date.replace("/", " ").replace("-", " ")
-
+                
                 filename = f"Circular 29 - {project_clean.replace('_', ' ')} as on {as_on_string}.xlsx"
-
                 output_dir = os.path.join("saved data")
                 os.makedirs(output_dir, exist_ok=True)
                 output_path = os.path.join(output_dir, filename)
-
+                
                 if converter.create_circular29_excel(output_path):
                     st.success("✅ Conversion completed successfully!")
                     with open(output_path, "rb") as f:
@@ -1073,9 +1096,9 @@ with col_upload:
                     st.error("❌ Failed to generate Circular 29 Excel.")
             else:
                 st.error("❌ Failed to process Form 3 file.")
-    st.markdown("</div>", unsafe_allow_html=True)
 
-# --- Footer ---
+# --- Close Main Content Container ---
+st.markdown('</div>', unsafe_allow_html=True)
+
+# --- Fixed Footer ---
 st.markdown('<div class="footer">© 2025 Aryan Parte. All rights reserved.</div>', unsafe_allow_html=True)
-
-
