@@ -974,7 +974,7 @@ st.set_page_config(
 st.markdown("""
     <style>
     #MainMenu, header, footer {visibility: hidden;}
-    .css-164nlkn {display: none;} /* GitHub icon */
+    .css-164nlkn {display: none;}  /* GitHub icon */
 
     html, body, .block-container {
         background-color: #0f1117;
@@ -991,7 +991,7 @@ st.markdown("""
         text-align: center;
         margin-bottom: 2rem;
     }
-    .upload-section {
+    .info-section {
         background-color: #111827;
         padding: 2rem;
         border-radius: 1rem;
@@ -1001,7 +1001,6 @@ st.markdown("""
         font-size: 1rem;
         color: #ccc;
         line-height: 1.6;
-        margin-bottom: 1rem;
     }
     .footer {
         text-align: center;
@@ -1017,46 +1016,35 @@ st.markdown("""
 # --- Title ---
 st.markdown('<div class="title-text">📄 Form 3 ➝ Circular 29 Converter</div>', unsafe_allow_html=True)
 
-# --- Upload / Info Card ---
-col1, col2 = st.columns([1, 2])
+# --- Layout: Info on Left, Upload on Right ---
+col_info, col_upload = st.columns([1.5, 2])
 
-with col1:
-    st.markdown('<div class="upload-section">', unsafe_allow_html=True)
-    st.markdown("### 📂 Upload Form 3 (.xlsx)")
-    st.markdown("""
-        <div class="desc-text">
-            Upload your certified Form 3 Excel file.<br><br>
-            <b>Must include sheets:</b><br>
-            • Table A — Project Info<br>
-            • Table B — As-on Date<br>
-            • Table C — Unit Inventory
-        </div>
-    """, unsafe_allow_html=True)
-    uploaded_file = st.file_uploader("Choose Form 3 Excel", type=["xlsx", "xls"])
-    st.markdown("</div>", unsafe_allow_html=True)
-
-with col2:
-    st.markdown('<div class="upload-section">', unsafe_allow_html=True)
+# --- LEFT COLUMN: Tool Info ---
+with col_info:
+    st.markdown('<div class="info-section">', unsafe_allow_html=True)
     st.markdown("### 🧾 What this tool does")
     st.markdown("""
-        <ul class="desc-text">
-            <li>✔️ Extracts project details, RERA number, as-on date</li>
-            <li>📊 Processes sold / unsold / landowner / tenant data</li>
-            <li>✅ Outputs Circular 29 in MahaRERA format</li>
-        </ul>
+        <div class="desc-text">
+        ✔️ Extracts <b>Project Name</b>, <b>RERA No.</b>, and <b>As-on Date</b><br><br>
+        📊 Reads Sold / Unsold / Landowner / Tenant unit data<br><br>
+        ✅ Generates <b>Circular 29</b> Excel file as per MahaRERA format<br><br>
+        <b>Expected Sheets:</b><br>
+        • Table A — Project Info<br>
+        • Table B — As-on Date<br>
+        • Table C — Inventory Details
+        </div>
     """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- Post Upload Processing ---
-if uploaded_file:
-    col_left, col_right = st.columns([1, 1])
+# --- RIGHT COLUMN: Upload + Status + Download ---
+with col_upload:
+    st.markdown('<div class="info-section">', unsafe_allow_html=True)
+    st.markdown("### 📂 Upload Form 3 (.xlsx)")
 
-    with col_left:
-        st.markdown("#### Upload complete.")
-        st.info(f"**{uploaded_file.name}**")
+    uploaded_file = st.file_uploader("Choose Form 3 Excel", type=["xlsx", "xls"])
 
-    with col_right:
-        with st.spinner("⏳ Processing..."):
+    if uploaded_file:
+        with st.spinner("⏳ Processing Form 3 file..."):
             with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
                 tmp.write(uploaded_file.read())
                 tmp_path = tmp.name
@@ -1085,10 +1073,7 @@ if uploaded_file:
                     st.error("❌ Failed to generate Circular 29 Excel.")
             else:
                 st.error("❌ Failed to process Form 3 file.")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # --- Footer ---
-st.markdown("""
-    <div class="footer">© 2025 Aryan Parte. All rights reserved.</div>
-""", unsafe_allow_html=True)
-
-
+st.markdown('<div class="footer">© 2025 Aryan Parte. All rights reserved.</div>', unsafe_allow_html=True)
