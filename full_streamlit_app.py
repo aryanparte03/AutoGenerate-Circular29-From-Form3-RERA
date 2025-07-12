@@ -1021,7 +1021,7 @@ col_info, col_upload = st.columns([1.5, 2])
 
 # --- LEFT COLUMN: Tool Info ---
 with col_info:
-    st.markdown("#### 🧾 What this tool does")
+    st.markdown("## 🧾 What this tool does")
     st.markdown("""
         <div class="desc-text">
         ✔️ Extracts <b>Project Name</b>, <b>RERA No.</b>, and <b>As-on Date</b><br><br>
@@ -1037,7 +1037,7 @@ with col_info:
 
 # --- RIGHT COLUMN: Upload + Status + Download ---
 with col_upload:
-    st.markdown("#### 📂 Upload Form 3 (.xlsx)")
+    st.markdown("## 📂 Upload Form 3 (.xlsx)")
 
     uploaded_file = st.file_uploader("Choose Form 3 Excel", type=["xlsx", "xls"])
 
@@ -1077,9 +1077,9 @@ with col_upload:
 st.markdown("""
     <div class="footer" style="
         text-align: center;
-        margin-top: 4rem;
+        margin-bottom: 1rem;
         padding: 1.2rem 0;
-        font-size: 1.1rem;
+        font-size: 3rem;
         font-weight: 500;
         color: #ccc;
         border-top: 1px solid #333;">
