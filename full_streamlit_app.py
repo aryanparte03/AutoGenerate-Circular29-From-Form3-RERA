@@ -1077,7 +1077,7 @@ with col_upload:
 st.markdown("""
     <div class="footer" style="
         text-align: center;
-        margin-bottom: 0.3rem;
+        margin-bottom: 0.1rem;
         padding: 1.2rem 0;
         font-size: 2.5rem;
         font-weight: 500;
