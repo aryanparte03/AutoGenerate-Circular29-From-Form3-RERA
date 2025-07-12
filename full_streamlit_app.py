@@ -973,103 +973,111 @@ st.set_page_config(
 # --- Styles ---
 st.markdown("""
     <style>
-    html, body, .main {
-        height: 100%;
-        margin: 0;
-        padding: 0;
+    #MainMenu, header, footer {visibility: hidden;}
+    .css-164nlkn {display: none;}  /* GitHub icon */
+
+    html, body, .block-container {
+        background-color: #0f1117;
+        color: white;
     }
     .block-container {
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        min-height: 100vh;
-        padding-top: 0.5rem;
-        padding-bottom: 0;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        max-width: 100% !important;
     }
-    .main-content {
-        flex: 1 0 auto;
+    .title-text {
+        font-size: 2.5rem;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .info-section {
+        background-color: #111827;
+        padding: 2rem;
+        border-radius: 1rem;
+        border: 1px solid #333;
+    }
+    .desc-text {
+        font-size: 1rem;
+        color: #ccc;
+        line-height: 1.6;
     }
     .footer {
-        flex-shrink: 0;
         text-align: center;
-        padding: 1.2rem 0 1rem 0;
+        margin-bottom: 0.1rem;
+        padding: 0.7rem 0;
         font-size: 2rem;
         font-weight: 500;
         color: #ccc;
         border-top: 1px solid #333;
-        background-color: #0f1117;
     }
-    #MainMenu, header, footer {visibility: hidden;}
-    .css-164nlkn {display: none;}
+
     </style>
 """, unsafe_allow_html=True)
 
-with st.container():
-    st.markdown('<div class="main-content">', unsafe_allow_html=True)
-    # --- Title ---
-    st.markdown('<div class="title-text">📄 Form 3 ➝ Circular 29 Converter</div>', unsafe_allow_html=True)
-    
-    # --- Layout: Info on Left, Upload on Right ---
-    col_info, col_upload = st.columns([1.5, 2])
-    
-    # --- LEFT COLUMN: Tool Info ---
-    with col_info:
-        st.markdown("## 🧾 What this tool does")
-        st.markdown("""
-            <div class="desc-text">
-            ✔️ Extracts <b>Project Name</b>, <b>RERA No.</b>, and <b>As-on Date</b><br><br>
-            📊 Reads Sold / Unsold / Landowner / Tenant unit data<br><br>
-            ✅ Generates <b>Circular 29</b> Excel file as per MahaRERA format<br><br>
-            <b>Expected Sheets:</b><br>
-            • Table A — Project Info<br>
-            • Table B — As-on Date<br>
-            • Table C — Inventory Details
-            </div>
-        """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-    
-    # --- RIGHT COLUMN: Upload + Status + Download ---
-    with col_upload:
-        st.markdown("## 📂 Upload Form 3 (.xlsx)")
-    
-        uploaded_file = st.file_uploader("Choose Form 3 Excel", type=["xlsx", "xls"])
-    
-        if uploaded_file:
-            with st.spinner("⏳ Processing Form 3 file..."):
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
-                    tmp.write(uploaded_file.read())
-                    tmp_path = tmp.name
-    
-                converter = Form3ToCircular29Converter()
-    
-                if converter.process_form3_file(tmp_path):
-                    project_clean = converter.project_name.strip().replace(" ", "_") or "Project"
-                    try:
-                        parsed_date = datetime.strptime(converter.format_date(converter.as_on_date), "%d/%m/%Y")
-                        as_on_string = parsed_date.strftime("%B %Y")
-                    except:
-                        as_on_string = converter.as_on_date.replace("/", " ").replace("-", " ")
-    
-                    filename = f"Circular 29 - {project_clean.replace('_', ' ')} as on {as_on_string}.xlsx"
-    
-                    output_dir = os.path.join("saved data")
-                    os.makedirs(output_dir, exist_ok=True)
-                    output_path = os.path.join(output_dir, filename)
-    
-                    if converter.create_circular29_excel(output_path):
-                        st.success("✅ Conversion completed successfully!")
-                        with open(output_path, "rb") as f:
-                            st.download_button("📥 Download Circular 29 Excel", f.read(), file_name=filename)
-                    else:
-                        st.error("❌ Failed to generate Circular 29 Excel.")
+# --- Title ---
+st.markdown('<div class="title-text">📄 Form 3 ➝ Circular 29 Converter</div>', unsafe_allow_html=True)
+
+# --- Layout: Info on Left, Upload on Right ---
+col_info, col_upload = st.columns([1.5, 2])
+
+# --- LEFT COLUMN: Tool Info ---
+with col_info:
+    st.markdown('<div class="info-section">', unsafe_allow_html=True)
+    st.markdown("### 🧾 What this tool does")
+    st.markdown("""
+        <div class="desc-text">
+        ✔️ Extracts <b>Project Name</b>, <b>RERA No.</b>, and <b>As-on Date</b><br><br>
+        📊 Reads Sold / Unsold / Landowner / Tenant unit data<br><br>
+        ✅ Generates <b>Circular 29</b> Excel file as per MahaRERA format<br><br>
+        <b>Expected Sheets:</b><br>
+        • Table A — Project Info<br>
+        • Table B — As-on Date<br>
+        • Table C — Inventory Details
+        </div>
+    """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# --- RIGHT COLUMN: Upload + Status + Download ---
+with col_upload:
+    st.markdown('<div class="info-section">', unsafe_allow_html=True)
+    st.markdown("### 📂 Upload Form 3 (.xlsx)")
+
+    uploaded_file = st.file_uploader("Choose Form 3 Excel", type=["xlsx", "xls"])
+
+    if uploaded_file:
+        with st.spinner("⏳ Processing Form 3 file..."):
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
+                tmp.write(uploaded_file.read())
+                tmp_path = tmp.name
+
+            converter = Form3ToCircular29Converter()
+
+            if converter.process_form3_file(tmp_path):
+                project_clean = converter.project_name.strip().replace(" ", "_") or "Project"
+                try:
+                    parsed_date = datetime.strptime(converter.format_date(converter.as_on_date), "%d/%m/%Y")
+                    as_on_string = parsed_date.strftime("%B %Y")
+                except:
+                    as_on_string = converter.as_on_date.replace("/", " ").replace("-", " ")
+
+                filename = f"Circular 29 - {project_clean.replace('_', ' ')} as on {as_on_string}.xlsx"
+
+                output_dir = os.path.join("saved data")
+                os.makedirs(output_dir, exist_ok=True)
+                output_path = os.path.join(output_dir, filename)
+
+                if converter.create_circular29_excel(output_path):
+                    st.success("✅ Conversion completed successfully!")
+                    with open(output_path, "rb") as f:
+                        st.download_button("📥 Download Circular 29 Excel", f.read(), file_name=filename)
                 else:
-                    st.error("❌ Failed to process Form 3 file.")
-        st.markdown("</div>", unsafe_allow_html=True)
+                    st.error("❌ Failed to generate Circular 29 Excel.")
+            else:
+                st.error("❌ Failed to process Form 3 file.")
+    st.markdown("</div>", unsafe_allow_html=True)
+
 # --- Footer ---
-st.markdown("""
-    <div class="footer">
-        © 2025 Aryan Parte. All rights reserved.
-    </div>
-""", unsafe_allow_html=True)
+st.markdown('<div class="footer">© 2025 Aryan Parte. All rights reserved.</div>', unsafe_allow_html=True)
 
 
