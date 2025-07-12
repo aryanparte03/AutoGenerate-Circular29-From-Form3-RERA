@@ -1021,7 +1021,6 @@ col_info, col_upload = st.columns([1.5, 2])
 
 # --- LEFT COLUMN: Tool Info ---
 with col_info:
-    st.markdown('<div class="info-section">', unsafe_allow_html=True)
     st.markdown("### 🧾 What this tool does")
     st.markdown("""
         <div class="desc-text">
@@ -1038,7 +1037,6 @@ with col_info:
 
 # --- RIGHT COLUMN: Upload + Status + Download ---
 with col_upload:
-    st.markdown('<div class="info-section">', unsafe_allow_html=True)
     st.markdown("### 📂 Upload Form 3 (.xlsx)")
 
     uploaded_file = st.file_uploader("Choose Form 3 Excel", type=["xlsx", "xls"])
