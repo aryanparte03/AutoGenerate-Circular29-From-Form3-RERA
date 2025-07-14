@@ -3,7 +3,7 @@
 
 ## 📸 Screenshot
 
-![App Screenshot](https://github.com/aryanparte03/test/assets/placeholder.png)
+<img width="1918" height="911" alt="image" src="https://github.com/user-attachments/assets/40b36db3-66ca-41e9-b101-b86fae224047" />
 
 ---
 
@@ -13,6 +13,12 @@ The app uses logic like:
 - Dynamic header detection (for robustness across various Form 3 formats)
 - Section-based parsing (`Sold`, `Unsold`, etc.) with keyword boundaries
 - Fallbacks if certain fields (like RERA or Date) aren't found in expected locations
+
+---
+
+## Output Snapshot
+
+<img width="1919" height="912" alt="image" src="https://github.com/user-attachments/assets/03b85327-9837-47ee-aea4-c01b60254c48" />
 
 ---
 
