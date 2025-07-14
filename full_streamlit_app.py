@@ -291,12 +291,12 @@ class Form3ToCircular29Converter:
         for row_index in range(data_start, len(sheet_data)):
             row = sheet_data.iloc[row_index]
 
-            # 🔴 STOP if any new section header is detected (always, even if parsing hasn't started)
-            row_text = ' '.join(str(cell).lower() for cell in row if pd.notna(cell)).strip()
-            if any(keyword in row_text for keyword in other_section_keywords):
-                logger.info(
-                    f"Detected new section while scanning '{section_keyword}' → '{row_text}' at row {row_index}. Stopping.")
-                break
+            # # 🔴 STOP if any new section header is detected (always, even if parsing hasn't started)
+            # row_text = ' '.join(str(cell).lower() for cell in row if pd.notna(cell)).strip()
+            # if any(keyword in row_text for keyword in other_section_keywords):
+            #     logger.info(
+            #         f"Detected new section while scanning '{section_keyword}' → '{row_text}' at row {row_index}. Stopping.")
+            #     break
 
             # ✅ Look for Sr. No = 1 to start parsing
             sr_no_col = col_mapping.get('sr_no', 0)
