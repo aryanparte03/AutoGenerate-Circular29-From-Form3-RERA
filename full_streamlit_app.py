@@ -267,7 +267,7 @@ class Form3ToCircular29Converter:
         for i, header in enumerate(headers):
             if "sr" in header and "no" in header:
                 col_mapping['sr_no'] = i
-            elif "flat" in header and "no" in header:
+            elif (("flat" in header and "no" in header) or ("shop" in header and "no" in header)):
                 col_mapping['flat_no'] = i
             elif "carpet" in header and "area" in header:
                 col_mapping['carpet_area'] = i
