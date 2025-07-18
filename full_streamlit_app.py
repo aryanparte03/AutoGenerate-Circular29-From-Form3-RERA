@@ -542,7 +542,7 @@ class Form3ToCircular29Converter:
                     col += 1
 
                     # Status column
-                    ws.cell(row=current_row, column=col, value=section).font = times_new_roman_font
+                    ws.cell(row=current_row, column=col, value=section.capitalize()).font = times_new_roman_font
                     ws.cell(row=current_row, column=col).alignment = Alignment(horizontal="center", vertical="center")
                     ws.cell(row=current_row, column=col).border = thin_border
                     col += 1
