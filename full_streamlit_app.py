@@ -15,6 +15,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+
 # Configuration class for customizing conversion behavior
 class ConversionConfig:
     """Configuration settings for Form 3 to Circular 29 conversion"""
@@ -60,7 +61,6 @@ class ConversionConfig:
             'filename_rera': r'([A-Z]\d+)',
             'filename_date': r'(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})'
         }
-
 
 
 class Form3ToCircular29Converter:
@@ -424,6 +424,7 @@ class Form3ToCircular29Converter:
             from openpyxl.styles import Border, Side, Alignment, Font
 
             # Define fonts
+            aptos_font_start = Font(name='Aptos', size=14, bold=True)
             aptos_font_head = Font(name='Aptos', size=14)
             aptos_font = Font(name='Aptos', size=11)
             aptos_bold = Font(name='Aptos', bold=True, size=14)
@@ -435,10 +436,19 @@ class Form3ToCircular29Converter:
             ws = wb.active
             ws.title = "Sheet1"
 
+            # Set default row height
+            ws.sheet_format.defaultRowHeight = 15.6
+
             # Set column widths
-            column_widths = [8, 15, 15, 20, 35, 25]
-            for i, width in enumerate(column_widths, 2):
-                ws.column_dimensions[chr(64 + i)].width = width
+            column_widths = {
+                'A': 9,
+                'B': 15,
+                'C': 12,
+                'D': 16,
+                'E': 18
+            }
+            for col_letter, width in column_widths.items():
+                ws.column_dimensions[col_letter].width = width
 
             # Define styles
             thin_border = Border(
@@ -449,28 +459,33 @@ class Form3ToCircular29Converter:
             )
 
             # Current row tracker
-            current_row = 11
+            current_row = 2
+
+            # Initiate File
+            ws[f'A{current_row}'] = f"To whomsoever it may concern"
+            ws[f'A{current_row}'].font = aptos_font_start
+            current_row += 2
 
             # Add project information
-            ws.merge_cells(f'B{current_row}:F{current_row}')
-            ws[f'B{current_row}'] = f"Name of Project: {self.project_name}"
-            ws[f'B{current_row}'].font = aptos_font_head
+            ws.merge_cells(f'A{current_row}:E{current_row}')
+            ws[f'A{current_row}'] = f"Name of Project: {self.project_name}"
+            ws[f'A{current_row}'].font = aptos_font_head
             current_row += 1
 
-            ws.merge_cells(f'B{current_row}:F{current_row}')
-            ws[f'B{current_row}'] = f"MahaRERA Project Registration Number: {self.rera_number}"
-            ws[f'B{current_row}'].font = aptos_font_head
+            ws.merge_cells(f'A{current_row}:E{current_row}')
+            ws[f'A{current_row}'] = f"MahaRERA Project Registration Number: {self.rera_number}"
+            ws[f'A{current_row}'].font = aptos_font_head
             current_row += 2
 
-            ws.merge_cells(f'B{current_row}:F{current_row}')
-            ws[f'B{current_row}'] = "Information of Sold/ Booked inventory (Building Wise)"
-            ws[f'B{current_row}'].font = aptos_bold
+            ws.merge_cells(f'A{current_row}:E{current_row}')
+            ws[f'A{current_row}'] = "Information of Sold/ Booked inventory (Building Wise)"
+            ws[f'A{current_row}'].font = aptos_bold
             current_row += 2
 
-            ws.merge_cells(f'B{current_row}:F{current_row}')
+            ws.merge_cells(f'A{current_row}:E{current_row}')
             formatted_date = self.format_date(self.as_on_date)
-            ws[f'B{current_row}'] = f"Information as on dated: {formatted_date}"
-            ws[f'B{current_row}'].font = aptos_font_head
+            ws[f'A{current_row}'] = f"Information as on dated: {formatted_date}"
+            ws[f'A{current_row}'].font = aptos_font_head
             current_row += 2
 
             # Check if any unit has non-empty building_no
@@ -488,13 +503,13 @@ class Form3ToCircular29Converter:
             ]
 
             for i, header in enumerate(headers):
-                col_letter = chr(66 + i)
+                col_letter = chr(65 + i)
                 cell = ws[f'{col_letter}{current_row}']
                 cell.value = header
                 cell.font = times_new_roman_bold
                 cell.border = thin_border
                 cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
-            ws.row_dimensions[current_row].height = 100.2  # Adjusted for multiline header
+            ws.row_dimensions[current_row].height = 98  # Adjusted for multiline header
 
             current_row += 1
             unit_counter = 1
@@ -506,7 +521,7 @@ class Form3ToCircular29Converter:
                     continue
 
                 for unit in units:
-                    col = 2
+                    col = 1
                     # Sr.No column
                     ws.cell(row=current_row, column=col, value=unit_counter).font = times_new_roman_font
                     ws.cell(row=current_row, column=col).alignment = Alignment(horizontal="center", vertical="center")
@@ -518,7 +533,8 @@ class Form3ToCircular29Converter:
                         bldg_val = str(unit.get('building_no', '')).strip()
                         ws.cell(row=current_row, column=col, value=bldg_val)
                         ws.cell(row=current_row, column=col).font = times_new_roman_font
-                        ws.cell(row=current_row, column=col).alignment = Alignment(horizontal="center", vertical="center")
+                        ws.cell(row=current_row, column=col).alignment = Alignment(horizontal="center",
+                                                                                   vertical="center")
                         ws.cell(row=current_row, column=col).border = thin_border
                         col += 1
 
@@ -549,10 +565,10 @@ class Form3ToCircular29Converter:
 
                     # Registration Date column
                     if section == 'sold':
-                        reg_date_val = ""
+                        reg_date_val = ""  # ✅ MODIFIED: Show 'NA' for unsold units
                     else:
-                        reg_date_val = "NA"
-                    
+                        reg_date_val = "NA"  # Or you can replace with actual date if available
+
                     ws.cell(row=current_row, column=col, value=reg_date_val).font = times_new_roman_font
                     ws.cell(row=current_row, column=col).alignment = Alignment(horizontal="center", vertical="center")
                     ws.cell(row=current_row, column=col).border = thin_border
@@ -564,23 +580,27 @@ class Form3ToCircular29Converter:
             current_row += 1
 
             note_text = "Note: This information has been tallied and confirmed from details submitted in Annexure 'A' of Form 3 issued by Chartered Accountant."
-            ws[f'B{current_row}'] = note_text
-            ws[f'B{current_row}'].font = aptos_font
-            current_row += 3
+
+            # Merge A to E for the note
+            ws.merge_cells(f'A{current_row}:E{current_row}')
+            ws[f'A{current_row}'] = note_text
+            ws[f'A{current_row}'].font = aptos_font
+            ws[f'A{current_row}'].alignment = Alignment(wrap_text=True, vertical="center", horizontal="center")
+
+            # Set height of note row
+            ws.row_dimensions[current_row].height = 38
+
+            current_row += 2
 
             # Merge E:F for "Sign"
-            ws.merge_cells(start_row=current_row, start_column=5, end_row=current_row, end_column=6)
-            ws.cell(row=current_row, column=5, value="Sign").font = aptos_font
-            ws.cell(row=current_row, column=5).alignment = Alignment(horizontal="center")
-            current_row += 3
-
-            ws.cell(row=current_row, column=2, value="Date:").font = aptos_font
-            ws.merge_cells(start_row=current_row, start_column=5, end_row=current_row, end_column=6)
-            ws.cell(row=current_row, column=5, value="Stamp").font = aptos_font
-            ws.cell(row=current_row, column=5).alignment = Alignment(horizontal="center")
+            ws.merge_cells(start_row=current_row, start_column=4, end_row=current_row, end_column=5)
+            ws.cell(row=current_row, column=4, value="Sign").font = aptos_font
+            ws.cell(row=current_row, column=4).alignment = Alignment(horizontal="center")
             current_row += 1
 
-            ws.cell(row=current_row, column=2, value="Place:").font = aptos_font
+            ws.merge_cells(start_row=current_row, start_column=5, end_row=current_row, end_column=5)
+            ws.cell(row=current_row, column=5, value="________________").font = aptos_font
+            ws.cell(row=current_row, column=5).alignment = Alignment(horizontal="center")
 
             wb.save(output_path)
             logger.info(f"Circular 29 file created successfully: {output_path}")
@@ -589,6 +609,7 @@ class Form3ToCircular29Converter:
         except Exception as e:
             logger.error(f"Error creating Circular 29 file: {str(e)}")
             return False
+
 
 def main():
     """
@@ -626,8 +647,10 @@ def main():
     else:
         print("❌ Error processing Form 3 file")
 
+
 if __name__ == "__main__":
     main()
+
 
 # Example usage function for different scenarios
 def convert_form3_to_circular29(input_file_path: str, output_file_path: str = None,
@@ -980,12 +1003,12 @@ st.markdown("""
     <style>
     #MainMenu, header, footer {visibility: hidden;}
     .css-164nlkn {display: none;}  /* GitHub icon */
-    
+
     html, body, .block-container {
         background-color: #0f1117;
         color: white;
     }
-    
+
     /* Optimize main container spacing */
     .main .block-container {
         padding-top: 0.5rem;
@@ -993,13 +1016,13 @@ st.markdown("""
         max-width: 100% !important;
         min-height: calc(100vh - 5rem);
     }
-    
+
     /* Ensure the app content area takes full height */
     .stApp {
         min-height: 100vh;
         position: relative;
     }
-    
+
     .title-text {
         font-size: 2.2rem;
         font-weight: 700;
@@ -1010,7 +1033,7 @@ st.markdown("""
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
-    
+
     .info-card {
         background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
         padding: 1.5rem;
@@ -1019,7 +1042,7 @@ st.markdown("""
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         margin-bottom: 1rem;
     }
-    
+
     .upload-area {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         padding: 1.5rem;
@@ -1027,7 +1050,7 @@ st.markdown("""
         border: 1px solid #475569;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
-    
+
     /* Fixed footer styling */
     .footer {
         position: fixed;
@@ -1044,24 +1067,24 @@ st.markdown("""
         z-index: 1000;
         box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
     }
-    
+
     /* Prevent footer from covering content */
     .main-content {
         padding-bottom: 4rem;
     }
-    
+
     /* Custom styling for Streamlit components */
     .stFileUploader > div > div > div > div {
         background-color: #1e293b !important;
         border: 2px dashed #475569 !important;
         border-radius: 0.5rem !important;
     }
-    
+
     .stSuccess {
         background-color: #065f46 !important;
         border: 1px solid #10b981 !important;
     }
-    
+
     .stError {
         background-color: #7f1d1d !important;
         border: 1px solid #ef4444 !important;
@@ -1081,11 +1104,11 @@ col_info, col_upload = st.columns([1.5, 2])
 # --- LEFT COLUMN: Tool Info ---
 with col_info:
     st.markdown("### 🧾 What this tool does")
-    
+
     st.markdown("✔️ **Extracts Project Name, RERA No., and As-on Date**")
     st.markdown("📊 **Reads Sold / Unsold / Landowner / Tenant unit data**")
     st.markdown("✅ **Generates Circular 29 Excel file as per MahaRERA format**")
-    
+
     st.markdown("---")
     st.markdown("**Expected Sheets:**")
     st.markdown("• Table A — Project Info")
@@ -1095,15 +1118,15 @@ with col_info:
 # --- RIGHT COLUMN: Upload + Status + Download ---
 with col_upload:
     st.markdown("### 📂 Upload Form 3 (.xlsx)")
-    
+
     uploaded_file = st.file_uploader("Choose Form 3 Excel", type=["xlsx", "xls"], label_visibility="collapsed")
-    
+
     if uploaded_file:
         with st.spinner("⏳ Processing Form 3 file..."):
             with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
                 tmp.write(uploaded_file.read())
                 tmp_path = tmp.name
-            
+
             converter = Form3ToCircular29Converter()
             if converter.process_form3_file(tmp_path):
                 project_clean = converter.project_name.strip().replace(" ", "_") or "Project"
@@ -1112,12 +1135,12 @@ with col_upload:
                     as_on_string = parsed_date.strftime("%B %Y")
                 except:
                     as_on_string = converter.as_on_date.replace("/", " ").replace("-", " ")
-                
+
                 filename = f"Circular 29 - {project_clean.replace('_', ' ')} as on {as_on_string}.xlsx"
                 output_dir = os.path.join("saved data")
                 os.makedirs(output_dir, exist_ok=True)
                 output_path = os.path.join(output_dir, filename)
-                
+
                 if converter.create_circular29_excel(output_path):
                     st.success("✅ Conversion completed successfully!")
                     with open(output_path, "rb") as f:
