@@ -548,10 +548,10 @@ class Form3ToCircular29Converter:
                     col += 1
 
                     # Registration Date column
-                    if section == 'unsold':
-                        reg_date_val = "NA"  # ✅ MODIFIED: Show 'NA' for unsold units
+                    if section == 'sold':
+                        reg_date_val = ""
                     else:
-                        reg_date_val = ""    # Or you can replace with actual date if available
+                        reg_date_val = "NA"
                     
                     ws.cell(row=current_row, column=col, value=reg_date_val).font = times_new_roman_font
                     ws.cell(row=current_row, column=col).alignment = Alignment(horizontal="center", vertical="center")
