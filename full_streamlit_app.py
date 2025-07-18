@@ -425,7 +425,6 @@ class Form3ToCircular29Converter:
 
             # Define fonts
             aptos_font_start = Font(name='Aptos', size=14, bold=True)
-            aptos_font_head = Font(name='Aptos', size=14)
             aptos_font = Font(name='Aptos', size=11)
             aptos_bold = Font(name='Aptos', bold=True, size=14)
             times_new_roman_font = Font(name='Times New Roman', size=11)
@@ -469,12 +468,12 @@ class Form3ToCircular29Converter:
             # Add project information
             ws.merge_cells(f'A{current_row}:E{current_row}')
             ws[f'A{current_row}'] = f"Name of Project: {self.project_name}"
-            ws[f'A{current_row}'].font = aptos_font_head
+            ws[f'A{current_row}'].font = aptos_font_start
             current_row += 1
 
             ws.merge_cells(f'A{current_row}:E{current_row}')
             ws[f'A{current_row}'] = f"MahaRERA Project Registration Number: {self.rera_number}"
-            ws[f'A{current_row}'].font = aptos_font_head
+            ws[f'A{current_row}'].font = aptos_font_start
             current_row += 2
 
             ws.merge_cells(f'A{current_row}:E{current_row}')
@@ -485,7 +484,7 @@ class Form3ToCircular29Converter:
             ws.merge_cells(f'A{current_row}:E{current_row}')
             formatted_date = self.format_date(self.as_on_date)
             ws[f'A{current_row}'] = f"Information as on dated: {formatted_date}"
-            ws[f'A{current_row}'].font = aptos_font_head
+            ws[f'A{current_row}'].font = aptos_font_start
             current_row += 2
 
             # Check if any unit has non-empty building_no
