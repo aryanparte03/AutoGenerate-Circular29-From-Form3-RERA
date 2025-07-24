@@ -265,18 +265,18 @@ class Form3ToCircular29Converter:
         # Map column indices
         col_mapping = {}
         for i, header in enumerate(headers):
-            if "sr" in header and "no" in header:
+            if "sr" in header and "no" in header and 'sr_no' not in col_mapping:
                 col_mapping['sr_no'] = i
-            elif (("flat" in header and "no" in header) or ("shop" in header and "no" in header)):
+            elif ("flat" in header and "no" in header or "shop" in header and "no" in header) and 'flat_no' not in col_mapping:
                 col_mapping['flat_no'] = i
-            elif "carpet" in header and "area" in header:
+            elif "carpet" in header and "area" in header and 'carpet_area' not in col_mapping:
                 col_mapping['carpet_area'] = i
-            elif "unit" in header and "type" in header and "apartment" not in header:
+            elif "unit" in header and "type" in header and "apartment" not in header and 'unit_type' not in col_mapping:
                 col_mapping['unit_type'] = i
-            elif "building" in header and "no" in header:
+            elif "building" in header and "no" in header and 'building_no' not in col_mapping:
                 col_mapping['building_no'] = i
-            elif "wing" in header:
-                col_mapping['building_no'] = i  # Use wing as building if building not found
+            elif "wing" in header and 'building_no' not in col_mapping:
+                col_mapping['building_no'] = i
             if 'building_no' in col_mapping:
                 self.include_building_column = True
 
