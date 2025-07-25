@@ -161,7 +161,7 @@ class Form3ToCircular29Converter:
         logger.warning("As-on date not found in Table B")
         return ""
 
-        def find_section_start(self, sheet_data: pd.DataFrame, section_keyword: str) -> int:
+    def find_section_start(self, sheet_data: pd.DataFrame, section_keyword: str) -> int:
         logger.info(f"Looking for section: {section_keyword}")
         for index, row in sheet_data.iterrows():
             for col in sheet_data.columns:
