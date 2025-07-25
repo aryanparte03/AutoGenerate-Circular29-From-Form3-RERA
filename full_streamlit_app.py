@@ -163,19 +163,29 @@ class Form3ToCircular29Converter:
 
     def find_section_start(self, sheet_data: pd.DataFrame, section_keyword: str) -> int:
         """
-        Find the starting row of a section by looking for the keyword
+        Find the starting row of a section by looking for the keyword ONLY at the start of the section header.
+        Now uses .startswith() for more precise matching.
         """
         logger.info(f"Looking for section: {section_keyword}")
-
         for index, row in sheet_data.iterrows():
             for col in sheet_data.columns:
                 cell_value = str(row[col]) if pd.notna(row[col]) else ""
-                if section_keyword.lower() in cell_value.lower():
-                    logger.info(f"Found section '{section_keyword}' at row {index}")
+                # Normalize and process only the start of the cell, before '-' or ':'
+                normalized_header = cell_value.strip().lower()
+                if '-' in normalized_header:
+                    first_part = normalized_header.split('-')[0].strip()
+                elif ':' in normalized_header:
+                    first_part = normalized_header.split(':')[0].strip()
+                else:
+                    first_part = normalized_header
+    
+                # Only match if the first part starts with the section keyword
+                if first_part.startswith(section_keyword.lower()):
+                    logger.info(f"Found section '{section_keyword}' at row {index}: {cell_value}")
                     return index
-
         logger.warning(f"Section '{section_keyword}' not found")
         return -1
+
 
     def find_data_start_row(self, sheet_data: pd.DataFrame, start_row: int) -> int:
         """
