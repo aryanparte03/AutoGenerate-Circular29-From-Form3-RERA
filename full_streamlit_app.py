@@ -26,7 +26,10 @@ class ConversionConfig:
             'sold': ['sold', 'booked'],
             'unsold': ['unsold', 'available'],
             'tenant': ['tenant', 'rented'],
-            'landowner': ['landowner', 'land owner', 'owner']
+            'landowner': ['landowner', 'land owner', 'owner'],
+            'rehab': ['existing', 'members', 'member'],
+            'cidco': ['CIDCO', 'NMMC'],
+            'pap': ['PAP']
         }
 
         # Column mapping keywords
@@ -40,9 +43,9 @@ class ConversionConfig:
 
         # Sheet name patterns
         self.sheet_patterns = {
-            'table_a': ['table a', 'project info', 'project information'],
-            'table_b': ['table b', 'cost', 'actual cost'],
-            'table_c': ['table c', 'unit', 'inventory', 'details']
+            'table_a': ['table a'],
+            'table_b': ['table b'],
+            'table_c': ['table c']
         }
 
         # Output formatting
@@ -78,7 +81,10 @@ class Form3ToCircular29Converter:
             'sold': [],
             'unsold': [],
             'tenant': [],
-            'landowner': []
+            'landowner': [],
+            'rehab': [],
+            'cidco': [],
+            'pap': []
         }
 
     def normalize_text(self, text: str) -> str:
@@ -383,7 +389,7 @@ class Form3ToCircular29Converter:
                 table_c_data = pd.read_excel(file_path, sheet_name=table_c_sheet, header=None, dtype=str)
 
                 # Extract unit data for each section
-                sections = ['sold', 'unsold', 'tenant', 'landowner']
+                sections = ['sold', 'unsold', 'tenant', 'landowner', 'rehab', 'cidco', 'pap']
                 for section in sections:
                     units = self.extract_unit_data(table_c_data, section)
                     self.unit_sections[section] = units
@@ -512,7 +518,7 @@ class Form3ToCircular29Converter:
 
             current_row += 1
             unit_counter = 1
-            section_order = ['sold', 'unsold', 'landowner', 'tenant']
+            section_order = ['sold', 'unsold', 'landowner', 'tenant', 'rehab', 'cidco', 'pap']
 
             for section in section_order:
                 units = self.unit_sections.get(section, [])
@@ -557,7 +563,11 @@ class Form3ToCircular29Converter:
                     col += 1
 
                     # Status column
-                    ws.cell(row=current_row, column=col, value=section.capitalize()).font = times_new_roman_font
+                    if section in ['cidco', 'pap']:
+                        status_display = section.upper()
+                    else:
+                        status_display = section.capitalize()
+                    ws.cell(row=current_row, column=col, value=status_display).font = times_new_roman_font
                     ws.cell(row=current_row, column=col).alignment = Alignment(horizontal="center", vertical="center")
                     ws.cell(row=current_row, column=col).border = thin_border
                     col += 1
@@ -735,7 +745,7 @@ def validate_form3_file(file_path: str) -> Dict[str, bool]:
             table_c_name = next(name for name in excel_file.sheet_names if 'table c' in name.lower())
             table_c = pd.read_excel(file_path, sheet_name=table_c_name, header=None)
             validation_results['has_unit_data'] = any(
-                any(keyword in str(cell).lower() for keyword in ['sold', 'unsold', 'tenant', 'landowner'])
+                any(keyword in str(cell).lower() for keyword in ['sold', 'unsold', 'tenant', 'landowner', 'rehab', 'cidco', 'pap'])
                 for row in table_c.values for cell in row if pd.notna(cell)
             )
 
@@ -836,7 +846,7 @@ def attempt_data_recovery(file_path: str, converter: Form3ToCircular29Converter)
                         converter.as_on_date = date_info
 
                 # Try to find unit data in any sheet
-                sections = ['sold', 'unsold', 'tenant', 'landowner']
+                sections = ['sold', 'unsold', 'tenant', 'landowner', 'rehab', 'cidco', 'pap']
                 for section in sections:
                     if not converter.unit_sections[section]:
                         units = converter.extract_unit_data(sheet_data, section)
